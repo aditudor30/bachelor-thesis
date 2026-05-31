@@ -1,0 +1,22 @@
+dataset:
+  root: "/path/to/MTMC_Tracking_2026"
+  output: "output/yolo_dataset_balanced_debug"
+  train_scenes: ["Warehouse_000", "Warehouse_001"]
+  val_scenes: ["Warehouse_020"]
+  camera_id: "Camera_0000"
+  frame_stride: 5
+  max_frames_per_scene: 500
+  target_classes: ["Forklift", "PalletTruck"]
+  rare_class_boost: 4
+  include_empty_frames: false
+  jpeg_quality: 95
+
+classes:
+  0: "Person"
+  1: "Forklift"
+  2: "PalletTruck"
+  3: "Transporter"
+  4: "FourierGR1T2"
+  5: "AgilityDigit"
+  6: "NovaCarter"
+

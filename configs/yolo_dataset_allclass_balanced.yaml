@@ -1,0 +1,48 @@
+dataset:
+  root: "/path/to/MTMC_Tracking_2026"
+  output: "output/yolo_dataset_allclass_balanced"
+  train_scenes:
+    - Warehouse_000
+    - Warehouse_001
+    - Warehouse_002
+    - Warehouse_003
+    - Warehouse_004
+    - Warehouse_005
+    - Warehouse_006
+    - Warehouse_007
+    - Warehouse_008
+    - Warehouse_009
+    - Warehouse_010
+    - Warehouse_011
+    - Warehouse_012
+    - Warehouse_013
+    - Warehouse_017
+    - Warehouse_018
+    - Warehouse_019
+  val_scenes:
+    - Warehouse_020
+    - Warehouse_021
+    - Warehouse_022
+  camera_id: all
+  frame_stride: 5
+  max_frames_per_scene: 1000
+  target_classes:
+    - Forklift
+    - PalletTruck
+    - Transporter
+    - FourierGR1T2
+    - AgilityDigit
+    - NovaCarter
+  rare_class_boost: 4
+  include_empty_frames: false
+  jpeg_quality: 95
+
+classes:
+  0: Person
+  1: Forklift
+  2: PalletTruck
+  3: Transporter
+  4: FourierGR1T2
+  5: AgilityDigit
+  6: NovaCarter
+

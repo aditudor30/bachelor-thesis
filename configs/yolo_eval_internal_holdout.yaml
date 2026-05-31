@@ -1,0 +1,12 @@
+eval:
+  root: "/path/to/MTMC_Tracking_2026"
+  detections_dir: "output/yolo_detections_internal_holdout"
+  scenes:
+    - Warehouse_014
+    - Warehouse_015
+    - Warehouse_016
+  camera_id: all
+  iou_threshold: 0.3
+  conf_threshold: 0.05
+  output: "output/yolo_eval/internal_holdout_metrics.json"
+

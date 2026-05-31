@@ -1,0 +1,12 @@
+inference:
+  root: "/path/to/MTMC_Tracking_2026"
+  split: "test"
+  scene: "Warehouse_023"
+  model: "output/yolo_runs/smartspaces_yolo11m/weights/best.pt"
+  output: "output/yolo_detections/Warehouse_023.csv"
+  conf: 0.25
+  frame_stride: 1
+  max_frames: 100
+  camera_id: "Camera_0000"
+  imgsz: 1280
+

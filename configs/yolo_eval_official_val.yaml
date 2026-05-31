@@ -1,0 +1,12 @@
+eval:
+  root: "/path/to/MTMC_Tracking_2026"
+  detections_dir: "output/yolo_detections_official_val"
+  scenes:
+    - Warehouse_020
+    - Warehouse_021
+    - Warehouse_022
+  camera_id: all
+  iou_threshold: 0.3
+  conf_threshold: 0.05
+  output: "output/yolo_eval/official_val_metrics.json"
+

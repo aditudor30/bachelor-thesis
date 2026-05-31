@@ -1,0 +1,22 @@
+dataset:
+  root: "/path/to/MTMC_Tracking_2026"
+  output: "output/yolo_internal_holdout"
+  holdout_scenes:
+    - Warehouse_014
+    - Warehouse_015
+    - Warehouse_016
+  camera_id: all
+  frame_stride: 5
+  max_frames_per_scene: 1000
+  include_empty_frames: false
+  jpeg_quality: 95
+
+classes:
+  0: Person
+  1: Forklift
+  2: PalletTruck
+  3: Transporter
+  4: FourierGR1T2
+  5: AgilityDigit
+  6: NovaCarter
+

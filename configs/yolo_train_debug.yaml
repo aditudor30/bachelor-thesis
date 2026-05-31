@@ -1,0 +1,11 @@
+yolo:
+  data: "output/yolo_dataset_debug/data.yaml"
+  model: "yolo11s.pt"
+  epochs: 5
+  imgsz: 960
+  batch: 8
+  device: "0"
+  workers: 2
+  project: "output/yolo_runs"
+  name: "smartspaces_yolo11s_debug"
+

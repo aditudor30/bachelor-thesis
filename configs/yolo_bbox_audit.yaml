@@ -1,0 +1,45 @@
+audit:
+  root: "/path/to/MTMC_Tracking_2026"
+  split: "train"
+  scenes:
+    - Warehouse_000
+    - Warehouse_001
+    - Warehouse_002
+    - Warehouse_003
+    - Warehouse_004
+    - Warehouse_005
+    - Warehouse_006
+    - Warehouse_007
+    - Warehouse_008
+    - Warehouse_009
+    - Warehouse_010
+    - Warehouse_011
+    - Warehouse_012
+    - Warehouse_013
+    - Warehouse_014
+    - Warehouse_015
+    - Warehouse_016
+    - Warehouse_017
+    - Warehouse_018
+    - Warehouse_019
+  camera_id: all
+  frame_stride: 5
+  max_frames_per_scene: 1000
+  output: "output/bbox_audit/train_bbox_audit.csv"
+  summary_output: "output/bbox_audit/train_bbox_audit_summary.json"
+
+difficulty:
+  easy_area_norm: 0.015
+  medium_area_norm: 0.004
+  easy_min_side: 48
+  medium_min_side: 24
+
+classes:
+  0: Person
+  1: Forklift
+  2: PalletTruck
+  3: Transporter
+  4: FourierGR1T2
+  5: AgilityDigit
+  6: NovaCarter
+
