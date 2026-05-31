@@ -1,0 +1,103 @@
+dataset:
+  root: "/path/to/MTMC_Tracking_2026"
+  audit_csv: "output/bbox_audit/train_bbox_audit.csv"
+  class_rich_frames: "output/bbox_audit/class_rich_frames.csv"
+  output: "output/yolo_curriculum/medium_allclass"
+
+curriculum:
+  name: "medium_allclass"
+  allowed_difficulties:
+    - easy
+    - medium
+  min_area_norm: 0.001
+  max_frames_total: 60000
+  max_frames_per_class: 15000
+  max_person_only_frames: 3000
+  include_all_visible_objects: true
+  jpeg_quality: 95
+  exclude_scenes:
+    - Warehouse_014
+    - Warehouse_015
+    - Warehouse_016
+  target_classes:
+    - PalletTruck
+    - Forklift
+    - Transporter
+    - FourierGR1T2
+    - AgilityDigit
+    - NovaCarter
+    - Person
+
+priorities:
+  class_priority:
+    PalletTruck: 5.0
+    Forklift: 4.0
+    Transporter: 4.0
+    FourierGR1T2: 4.0
+    AgilityDigit: 4.0
+    NovaCarter: 4.0
+    Person: 1.0
+  scene_priority:
+    PalletTruck:
+      - Warehouse_006
+      - Warehouse_007
+      - Warehouse_000
+      - Warehouse_001
+    Forklift:
+      - Warehouse_006
+      - Warehouse_007
+      - Warehouse_004
+      - Warehouse_005
+    Transporter:
+      - Warehouse_013
+      - Warehouse_015
+      - Warehouse_014
+      - Warehouse_012
+      - Warehouse_016
+    FourierGR1T2:
+      - Warehouse_014
+      - Warehouse_008
+      - Warehouse_009
+    AgilityDigit:
+      - Warehouse_009
+      - Warehouse_008
+      - Warehouse_015
+    NovaCarter:
+      - Warehouse_013
+      - Warehouse_014
+      - Warehouse_015
+  camera_priority:
+    PalletTruck:
+      - Camera_0011
+      - Camera_0018
+      - Camera_0006
+    Forklift:
+      - Camera_0002
+      - Camera_0013
+      - Camera_0001
+    Transporter:
+      - Camera_0001
+      - Camera_0002
+      - Camera_0003
+      - Camera_0006
+    FourierGR1T2:
+      - Camera_0008
+      - Camera_0004
+      - Camera_0005
+    AgilityDigit:
+      - Camera_0008
+      - Camera_0005
+      - Camera_0007
+    NovaCarter:
+      - Camera_0007
+      - Camera_0001
+      - Camera_0003
+
+classes:
+  0: Person
+  1: Forklift
+  2: PalletTruck
+  3: Transporter
+  4: FourierGR1T2
+  5: AgilityDigit
+  6: NovaCarter
