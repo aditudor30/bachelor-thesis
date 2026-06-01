@@ -1,0 +1,45 @@
+pipeline:
+  root: "/path/to/MTMC_Tracking_2026"
+  output_root: "output/pipeline_runs"
+  run_name: "yolo11m_medium_curriculum_conf001"
+  detector_model: "output/yolo_runs/yolo11m_medium_curriculum/weights/best.pt"
+  conf_threshold: 0.01
+  imgsz: 1280
+  device: "0"
+  frame_stride: 1
+  max_frames: null
+  camera_ids: null
+  export_mot_like: true
+  build_observations: true
+  iou_threshold: 0.3
+  depth_sampling_method: "center_median"
+  class_must_match: true
+
+subsets:
+  official_val:
+    split: "val"
+    scenes:
+      - "Warehouse_020"
+      - "Warehouse_021"
+      - "Warehouse_022"
+  internal_holdout:
+    split: "train"
+    scenes:
+      - "Warehouse_014"
+      - "Warehouse_015"
+      - "Warehouse_016"
+  test:
+    split: "test"
+    scenes:
+      - "Warehouse_023"
+      - "Warehouse_024"
+      - "Warehouse_025"
+
+classes:
+  0: "Person"
+  1: "Forklift"
+  2: "PalletTruck"
+  3: "Transporter"
+  4: "FourierGR1T2"
+  5: "AgilityDigit"
+  6: "NovaCarter"
