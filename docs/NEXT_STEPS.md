@@ -4,6 +4,11 @@
 
 Step 9C is controlled YOLO curriculum training. The goal is not to solve MTMC yet. The goal is to determine whether the detector can produce real usable detections for non-Person classes.
 
+The command plan for this step is defined in:
+
+- `deep_oc_sort_3d/configs/yolo_curriculum_9c_plan.yaml`
+- `docs/YOLO_CURRICULUM_9C.md`
+
 ## Plan
 
 1. Smoke test YOLO11s on `easy_allclass`.
@@ -59,4 +64,3 @@ Investigate:
 - Do not use `match/case`.
 - Treat official val as incomplete for all-class diagnosis.
 - Use internal holdout for robotic class diagnostics.
-

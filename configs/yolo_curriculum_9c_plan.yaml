@@ -1,0 +1,107 @@
+dataset:
+  root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+
+training:
+  stages:
+    - name: "yolo11s_easy_curriculum_debug"
+      data: "output/yolo_curriculum/easy_allclass/data.yaml"
+      model: "yolo11s.pt"
+      epochs: 5
+      imgsz: 960
+      batch: 8
+      device: "0"
+      workers: 2
+      project: "output/yolo_runs"
+      patience: 5
+      checkpoint: "output/yolo_runs/yolo11s_easy_curriculum_debug/weights/best.pt"
+
+    - name: "yolo11m_easy_curriculum"
+      data: "output/yolo_curriculum/easy_allclass/data.yaml"
+      model: "yolo11m.pt"
+      epochs: 15
+      imgsz: 1280
+      batch: 16
+      device: "0,1"
+      workers: 4
+      project: "output/yolo_runs"
+      patience: 10
+      checkpoint: "output/yolo_runs/yolo11m_easy_curriculum/weights/best.pt"
+
+    - name: "yolo11m_medium_curriculum"
+      data: "output/yolo_curriculum/medium_allclass/data.yaml"
+      model: "output/yolo_runs/yolo11m_easy_curriculum/weights/best.pt"
+      epochs: 30
+      imgsz: 1280
+      batch: 16
+      device: "0,1"
+      workers: 4
+      project: "output/yolo_runs"
+      patience: 15
+      checkpoint: "output/yolo_runs/yolo11m_medium_curriculum/weights/best.pt"
+
+evaluation:
+  evaluate_stages:
+    - "yolo11m_easy_curriculum"
+    - "yolo11m_medium_curriculum"
+  inference_conf: 0.01
+  eval_conf: 0.05
+  iou_threshold: 0.3
+  imgsz: 1280
+  frame_stride: 1
+  max_frames_per_scene: 500
+  min_precision: 0.5
+  thresholds:
+    - 0.01
+    - 0.02
+    - 0.03
+    - 0.05
+    - 0.075
+    - 0.10
+    - 0.15
+    - 0.20
+    - 0.30
+    - 0.40
+    - 0.50
+
+  official_val:
+    split: "val"
+    scenes:
+      - Warehouse_020
+      - Warehouse_021
+      - Warehouse_022
+    camera_id: "all"
+    detections_dir: "output/yolo_detections_9c/{stage}/official_val"
+    metrics_output: "output/yolo_eval_9c/{stage}/official_val_metrics.json"
+    threshold_output: "output/yolo_eval_9c/{stage}/official_val_threshold_sweep.csv"
+
+  internal_holdout:
+    split: "train"
+    scenes:
+      - Warehouse_014
+      - Warehouse_015
+      - Warehouse_016
+    camera_id: "all"
+    detections_dir: "output/yolo_detections_9c/{stage}/internal_holdout"
+    metrics_output: "output/yolo_eval_9c/{stage}/internal_holdout_metrics.json"
+    threshold_output: "output/yolo_eval_9c/{stage}/internal_holdout_threshold_sweep.csv"
+
+comparison:
+  enabled: true
+  metrics:
+    - name: "easy_vs_medium_official_val"
+      paths:
+        - "output/yolo_eval_9c/yolo11m_easy_curriculum/official_val_metrics.json"
+        - "output/yolo_eval_9c/yolo11m_medium_curriculum/official_val_metrics.json"
+      names:
+        - "easy"
+        - "medium"
+      output: "output/yolo_eval_9c/easy_vs_medium_official_val.csv"
+
+    - name: "easy_vs_medium_internal_holdout"
+      paths:
+        - "output/yolo_eval_9c/yolo11m_easy_curriculum/internal_holdout_metrics.json"
+        - "output/yolo_eval_9c/yolo11m_medium_curriculum/internal_holdout_metrics.json"
+      names:
+        - "easy"
+        - "medium"
+      output: "output/yolo_eval_9c/easy_vs_medium_internal_holdout.csv"
