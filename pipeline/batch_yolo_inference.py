@@ -105,6 +105,7 @@ class BatchYoloInferenceRunner:
                 max_frames=self.config.max_frames,
                 frame_stride=self.config.frame_stride,
                 imgsz=self.config.imgsz,
+                device=self.config.device,
             )
             write_detections_csv(detections, detections_csv)
             mot_path = None
@@ -141,15 +142,7 @@ class BatchYoloInferenceRunner:
     def _ensure_model(self) -> Any:
         if self.model is None:
             self.model = load_yolo_model(self.config.detector_model)
-            self._try_set_device()
         return self.model
-
-    def _try_set_device(self) -> None:
-        try:
-            if hasattr(self.model, "to"):
-                self.model.to(self.config.device)
-        except Exception as exc:
-            print("warning: could not move YOLO model to device %s: %s" % (self.config.device, exc))
 
     def _video_paths_for_scene(self, split: str, scene_name: str) -> Dict[str, Path]:
         scene_paths = get_scene_paths(self.config.root, split, scene_name)

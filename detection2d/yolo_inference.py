@@ -29,6 +29,7 @@ def run_yolo_on_video(
     max_frames: Optional[int] = None,
     frame_stride: int = 1,
     imgsz: int = 1280,
+    device: Optional[str] = None,
 ) -> List[Detection2D]:
     """Run YOLO frame-by-frame on one video and return common detections."""
     detections = []
@@ -49,7 +50,14 @@ def run_yolo_on_video(
                 frame_id += 1
                 continue
 
-            results = model(frame_bgr, conf=float(conf_threshold), imgsz=int(imgsz), verbose=False)
+            predict_kwargs = {
+                "conf": float(conf_threshold),
+                "imgsz": int(imgsz),
+                "verbose": False,
+            }
+            if device is not None:
+                predict_kwargs["device"] = str(device)
+            results = model(frame_bgr, **predict_kwargs)
             if results:
                 detections.extend(
                     _detections_from_result(
@@ -108,4 +116,3 @@ def _detections_from_result(
             )
         )
     return detections
-
