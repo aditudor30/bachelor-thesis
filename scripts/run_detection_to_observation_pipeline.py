@@ -37,7 +37,11 @@ def run_detection_to_observation_pipeline(args: Any) -> None:
     observation_rows = None
     per_class = None
     if not args.skip_inference:
-        inference_rows = BatchYoloInferenceRunner(config=config, overwrite=args.overwrite).run()
+        inference_rows = BatchYoloInferenceRunner(
+            config=config,
+            overwrite=args.overwrite,
+            show_progress=not args.no_progress,
+        ).run()
         write_inference_summary(inference_rows, summaries_dir / "inference_summary.csv")
     if not args.skip_observations and config.build_observations:
         observation_rows = BatchObservationBuilder(config=config, overwrite=args.overwrite).run()
@@ -94,6 +98,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--skip-inference", action="store_true")
     parser.add_argument("--skip-observations", action="store_true")
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--no-progress", action="store_true")
     return parser
 
 

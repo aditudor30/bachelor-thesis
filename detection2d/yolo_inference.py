@@ -1,7 +1,7 @@
 """Ultralytics YOLO inference wrapper for SmartSpaces videos."""
 
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import cv2
 
@@ -30,6 +30,8 @@ def run_yolo_on_video(
     frame_stride: int = 1,
     imgsz: int = 1280,
     device: Optional[str] = None,
+    show_progress: bool = False,
+    progress_desc: Optional[str] = None,
 ) -> List[Detection2D]:
     """Run YOLO frame-by-frame on one video and return common detections."""
     detections = []
@@ -39,6 +41,7 @@ def run_yolo_on_video(
 
     frame_id = 0
     stride = max(int(frame_stride), 1)
+    progress = _make_progress_bar(capture, max_frames, stride, show_progress, progress_desc)
     try:
         while True:
             if max_frames is not None and frame_id >= int(max_frames):
@@ -50,6 +53,7 @@ def run_yolo_on_video(
                 frame_id += 1
                 continue
 
+            _update_progress(progress, frame_id)
             predict_kwargs = {
                 "conf": float(conf_threshold),
                 "imgsz": int(imgsz),
@@ -71,6 +75,7 @@ def run_yolo_on_video(
                 )
             frame_id += 1
     finally:
+        _close_progress_bar(progress)
         capture.release()
     return detections
 
@@ -116,3 +121,55 @@ def _detections_from_result(
             )
         )
     return detections
+
+
+def _make_progress_bar(
+    capture: Any,
+    max_frames: Optional[int],
+    frame_stride: int,
+    show_progress: bool,
+    progress_desc: Optional[str],
+) -> Any:
+    if not show_progress:
+        return None
+    total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    if total_frames <= 0:
+        total_frames = None
+    if max_frames is not None:
+        total_frames = int(max_frames) if total_frames is None else min(total_frames, int(max_frames))
+    total_selected = None
+    if total_frames is not None:
+        total_selected = int((int(total_frames) + max(int(frame_stride), 1) - 1) / max(int(frame_stride), 1))
+    try:
+        from tqdm import tqdm
+    except ImportError:
+        return {
+            "kind": "print",
+            "count": 0,
+            "total": total_selected,
+            "desc": progress_desc or "YOLO inference",
+        }
+    return tqdm(total=total_selected, desc=progress_desc or "YOLO inference", unit="frame")
+
+
+def _update_progress(progress: Any, frame_id: int) -> None:
+    if progress is None:
+        return
+    if hasattr(progress, "update"):
+        progress.update(1)
+        return
+    progress["count"] += 1
+    count = int(progress["count"])
+    total = progress.get("total")
+    if count == 1 or count % 100 == 0:
+        if total is None:
+            print("%s: processed %d selected frames, current frame_id=%d" % (progress["desc"], count, int(frame_id)))
+        else:
+            print("%s: processed %d/%d selected frames" % (progress["desc"], count, int(total)))
+
+
+def _close_progress_bar(progress: Any) -> None:
+    if progress is None:
+        return
+    if hasattr(progress, "close"):
+        progress.close()

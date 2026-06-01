@@ -24,7 +24,7 @@ def run_batch_yolo_inference(args: Any) -> None:
     run_root = make_run_root(config.output_root, config.run_name)
     summaries_dir = get_summaries_dir(run_root)
     save_resolved_config(config, summaries_dir / "run_config_resolved.yaml")
-    rows = BatchYoloInferenceRunner(config=config, overwrite=args.overwrite).run()
+    rows = BatchYoloInferenceRunner(config=config, overwrite=args.overwrite, show_progress=not args.no_progress).run()
     write_inference_summary(rows, summaries_dir / "inference_summary.csv")
     print_pipeline_summary(inference_rows=rows)
     print("Wrote %s" % (summaries_dir / "inference_summary.csv"))
@@ -63,6 +63,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--camera-ids", nargs="+", default=None)
     parser.add_argument("--subsets", nargs="+", default=None)
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--no-progress", action="store_true")
     return parser
 
 

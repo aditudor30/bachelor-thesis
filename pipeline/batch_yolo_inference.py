@@ -24,9 +24,10 @@ from deep_oc_sort_3d.pipeline.run_config import PipelineRunConfig
 class BatchYoloInferenceRunner:
     """Run YOLO inference over configured subsets, scenes, and cameras."""
 
-    def __init__(self, config: PipelineRunConfig, overwrite: bool = False):
+    def __init__(self, config: PipelineRunConfig, overwrite: bool = False, show_progress: bool = True):
         self.config = config
         self.overwrite = overwrite
+        self.show_progress = show_progress
         self.run_root = make_run_root(config.output_root, config.run_name)
         ensure_pipeline_dirs(self.run_root)
         self.model = None
@@ -106,6 +107,8 @@ class BatchYoloInferenceRunner:
                 frame_stride=self.config.frame_stride,
                 imgsz=self.config.imgsz,
                 device=self.config.device,
+                show_progress=self.show_progress,
+                progress_desc="%s %s %s" % (subset_name, scene_name, camera_id),
             )
             write_detections_csv(detections, detections_csv)
             mot_path = None
