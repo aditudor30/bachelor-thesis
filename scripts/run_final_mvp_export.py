@@ -87,6 +87,7 @@ def _propagate_scene(subset: str, scene_name: str, options: Dict[str, Any]) -> L
             show_progress=options["progress"],
             namespace_global_ids=options["namespace_global_ids"],
             global_id_stride=options["global_id_stride"],
+            drop_invalid_bbox=options["drop_invalid_bbox"],
         )
         rows.append(row)
     return rows
@@ -102,6 +103,7 @@ def _export_generic_scenes(scenes: List[Tuple[str, str, str]], options: Dict[str
             files,
             output_path,
             drop_unassigned=options["drop_unassigned_for_generic_export"],
+            drop_invalid_bbox=options["drop_invalid_bbox_for_generic_export"],
         )
         row["subset"] = subset
         rows.append(row)
@@ -204,6 +206,10 @@ def _resolve_options(config: Dict[str, Any], args: Any) -> Dict[str, Any]:
         "global_id_stride": int(_value(args.global_id_stride, config.get("global_id_stride"), 100000)),
         "drop_unassigned_for_generic_export": bool(
             _value(args.drop_unassigned_for_generic_export, config.get("drop_unassigned_for_generic_export"), True)
+        ),
+        "drop_invalid_bbox": bool(_value(args.drop_invalid_bbox, config.get("drop_invalid_bbox"), True)),
+        "drop_invalid_bbox_for_generic_export": bool(
+            _value(args.drop_invalid_bbox_for_generic_export, config.get("drop_invalid_bbox_for_generic_export"), True)
         ),
         "progress": bool(_value(args.progress, config.get("progress"), True)),
         "overwrite": bool(args.overwrite),
@@ -309,9 +315,15 @@ def build_arg_parser() -> argparse.ArgumentParser:
     namespace_group.add_argument("--namespace-global-ids", dest="namespace_global_ids", action="store_true", default=None)
     namespace_group.add_argument("--keep-local-global-ids", dest="namespace_global_ids", action="store_false")
     parser.add_argument("--global-id-stride", type=int, default=None)
+    bbox_frame_group = parser.add_mutually_exclusive_group()
+    bbox_frame_group.add_argument("--drop-invalid-bbox", dest="drop_invalid_bbox", action="store_true", default=None)
+    bbox_frame_group.add_argument("--keep-invalid-bbox", dest="drop_invalid_bbox", action="store_false")
     generic_group = parser.add_mutually_exclusive_group()
     generic_group.add_argument("--drop-unassigned-generic", dest="drop_unassigned_for_generic_export", action="store_true", default=None)
     generic_group.add_argument("--include-unassigned-generic", dest="drop_unassigned_for_generic_export", action="store_false")
+    bbox_group = parser.add_mutually_exclusive_group()
+    bbox_group.add_argument("--drop-invalid-bbox-generic", dest="drop_invalid_bbox_for_generic_export", action="store_true", default=None)
+    bbox_group.add_argument("--keep-invalid-bbox-generic", dest="drop_invalid_bbox_for_generic_export", action="store_false")
     progress_group = parser.add_mutually_exclusive_group()
     progress_group.add_argument("--progress", dest="progress", action="store_true", default=None)
     progress_group.add_argument("--no-progress", dest="progress", action="store_false")

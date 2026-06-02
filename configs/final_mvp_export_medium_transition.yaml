@@ -6,7 +6,9 @@ final_export:
   include_unassigned: true
   namespace_global_ids: true
   global_id_stride: 100000
+  drop_invalid_bbox: true
   drop_unassigned_for_generic_export: true
+  drop_invalid_bbox_for_generic_export: true
   progress: true
 
   subsets:

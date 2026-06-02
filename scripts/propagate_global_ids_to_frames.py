@@ -20,6 +20,7 @@ def propagate_global_ids_to_frames(args: Any) -> None:
         show_progress=args.progress,
         namespace_global_ids=args.namespace_global_ids,
         global_id_stride=args.global_id_stride,
+        drop_invalid_bbox=args.drop_invalid_bbox,
     )
     print(json.dumps(row, indent=2, sort_keys=True))
 
@@ -39,10 +40,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
     namespace_group.add_argument("--namespace-global-ids", dest="namespace_global_ids", action="store_true")
     namespace_group.add_argument("--keep-local-global-ids", dest="namespace_global_ids", action="store_false")
     parser.add_argument("--global-id-stride", type=int, default=100000)
+    bbox_group = parser.add_mutually_exclusive_group()
+    bbox_group.add_argument("--drop-invalid-bbox", dest="drop_invalid_bbox", action="store_true")
+    bbox_group.add_argument("--keep-invalid-bbox", dest="drop_invalid_bbox", action="store_false")
     progress_group = parser.add_mutually_exclusive_group()
     progress_group.add_argument("--progress", dest="progress", action="store_true")
     progress_group.add_argument("--no-progress", dest="progress", action="store_false")
-    parser.set_defaults(include_unassigned=True, namespace_global_ids=True, progress=True)
+    parser.set_defaults(include_unassigned=True, namespace_global_ids=True, drop_invalid_bbox=True, progress=True)
     return parser
 
 

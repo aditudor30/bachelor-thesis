@@ -6,6 +6,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from deep_oc_sort_3d.final_export.global_frame_types import GlobalFrameRecord
 from deep_oc_sort_3d.final_export.generic_export import (
+    is_valid_bbox,
     write_global_frame_records_csv,
     write_global_frame_records_jsonl,
 )
@@ -68,10 +69,13 @@ def propagate_global_ids_to_local_records(
     subset: str,
     candidate_mapping: CandidateMapping,
     include_unassigned: bool = True,
+    drop_invalid_bbox: bool = False,
 ) -> List[GlobalFrameRecord]:
     """Propagate global ids from candidate mapping to local track records."""
     output = []
     for record in local_records:
+        if drop_invalid_bbox and not is_valid_bbox(record.bbox_xyxy):
+            continue
         class_key = (
             str(subset),
             str(record.scene_name),
@@ -125,6 +129,7 @@ def propagate_for_camera_file(
     show_progress: bool = True,
     namespace_global_ids: bool = True,
     global_id_stride: int = 100000,
+    drop_invalid_bbox: bool = False,
 ) -> Dict[str, Any]:
     """Propagate global ids for one camera local-track file."""
     try:
@@ -139,6 +144,7 @@ def propagate_for_camera_file(
             subset=subset,
             candidate_mapping=mapping,
             include_unassigned=include_unassigned,
+            drop_invalid_bbox=drop_invalid_bbox,
         )
         write_global_frame_records_csv(records, output_csv)
         if output_jsonl is not None:
@@ -159,6 +165,7 @@ def propagate_for_camera_file(
             "unique_global_tracks": len(set([record.global_track_id for record in assigned])),
             "namespace_global_ids": bool(namespace_global_ids),
             "global_id_stride": int(global_id_stride),
+            "drop_invalid_bbox": bool(drop_invalid_bbox),
             "output_csv": str(output_csv),
             "status": "ok",
             "error_message": "",
@@ -176,6 +183,7 @@ def propagate_for_camera_file(
             "unique_global_tracks": 0,
             "namespace_global_ids": bool(namespace_global_ids),
             "global_id_stride": int(global_id_stride),
+            "drop_invalid_bbox": bool(drop_invalid_bbox),
             "output_csv": str(output_csv),
             "status": "error",
             "error_message": str(exc),

@@ -121,6 +121,7 @@ def export_generic_tracking_scene_csv(
     frame_record_files: List[Path],
     output_path: Path,
     drop_unassigned: bool = True,
+    drop_invalid_bbox: bool = True,
 ) -> Dict[str, Any]:
     """Export one generic CSV per scene.
 
@@ -132,6 +133,8 @@ def export_generic_tracking_scene_csv(
         records.extend(read_global_frame_records_file(path))
     if drop_unassigned:
         records = [record for record in records if record.global_track_id is not None]
+    if drop_invalid_bbox:
+        records = [record for record in records if is_valid_bbox(record.bbox_xyxy)]
     records = sorted(records, key=lambda item: (item.scene_name, item.camera_id, item.frame_id, int(item.global_track_id or -1)))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", newline="", encoding="utf-8") as handle:
@@ -140,6 +143,15 @@ def export_generic_tracking_scene_csv(
         for record in records:
             writer.writerow(_generic_export_row(record))
     return _generic_export_summary(records, output_path)
+
+
+def is_valid_bbox(bbox_xyxy: Any) -> bool:
+    """Return True when bbox has positive width and height."""
+    try:
+        x1, y1, x2, y2 = bbox_xyxy
+    except (TypeError, ValueError):
+        return False
+    return float(x2) > float(x1) and float(y2) > float(y1)
 
 
 def global_frame_record_to_csv_row(record: GlobalFrameRecord) -> Dict[str, Any]:

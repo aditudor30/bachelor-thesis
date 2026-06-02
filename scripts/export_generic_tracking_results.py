@@ -22,7 +22,12 @@ def export_generic_tracking_results(args: Any) -> None:
             rows.append({"scene_name": scene_name, "rows_written": 0, "unique_global_tracks": 0, "status": "skipped_existing"})
             continue
         files = sorted(scene_root.glob("*_global_records.csv"))
-        row = export_generic_tracking_scene_csv(files, output_path, drop_unassigned=args.drop_unassigned)
+        row = export_generic_tracking_scene_csv(
+            files,
+            output_path,
+            drop_unassigned=args.drop_unassigned,
+            drop_invalid_bbox=args.drop_invalid_bbox,
+        )
         row["subset"] = subset
         row["status"] = "ok"
         rows.append(row)
@@ -80,11 +85,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
     assign_group = parser.add_mutually_exclusive_group()
     assign_group.add_argument("--drop-unassigned", dest="drop_unassigned", action="store_true")
     assign_group.add_argument("--include-unassigned", dest="drop_unassigned", action="store_false")
+    bbox_group = parser.add_mutually_exclusive_group()
+    bbox_group.add_argument("--drop-invalid-bbox", dest="drop_invalid_bbox", action="store_true")
+    bbox_group.add_argument("--keep-invalid-bbox", dest="drop_invalid_bbox", action="store_false")
     parser.add_argument("--overwrite", action="store_true")
     progress_group = parser.add_mutually_exclusive_group()
     progress_group.add_argument("--progress", dest="progress", action="store_true")
     progress_group.add_argument("--no-progress", dest="progress", action="store_false")
-    parser.set_defaults(drop_unassigned=True, progress=True)
+    parser.set_defaults(drop_unassigned=True, drop_invalid_bbox=True, progress=True)
     return parser
 
 
