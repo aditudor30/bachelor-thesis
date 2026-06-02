@@ -1,0 +1,22 @@
+global_mtmc:
+  class_must_match: true
+  allow_same_camera_links: false
+  enable_overlap_association: true
+  enable_transition_association: false
+  include_singletons: true
+
+  max_frame_delta_for_overlap: 1
+  max_mean_overlap_distance: 1.5
+  max_median_overlap_distance: 1.25
+  max_entry_exit_distance: 2.0
+  max_temporal_gap: 30
+  max_velocity_angle_deg: 60.0
+
+  overlap_distance_weight: 1.0
+  transition_distance_weight: 1.0
+  temporal_gap_weight: 0.1
+  velocity_weight: 0.1
+  confidence_weight: 0.05
+  cost_threshold: 0.8
+
+  max_candidates_per_group: null
