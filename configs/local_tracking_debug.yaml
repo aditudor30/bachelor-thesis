@@ -1,0 +1,19 @@
+tracking:
+  run_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+  output_root: "output/local_tracks/debug_medium"
+  subsets:
+    - "official_val"
+  scenes:
+    - "Warehouse_020"
+  camera_ids:
+    - "Camera_0000"
+  mode: "hybrid"
+  min_confidence: 0.01
+  min_hits: 2
+  max_misses: 30
+  cost_threshold: 0.7
+  max_3d_distance: 3.0
+  min_iou: 0.05
+  class_must_match: true
+  max_detections_per_frame: 200
+  progress: true
