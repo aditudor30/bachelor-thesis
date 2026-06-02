@@ -1,0 +1,36 @@
+motion_quality:
+  require_3d_motion: true
+  allow_suspicious_as_clean: false
+  min_valid_3d_points: 3
+  min_valid_3d_ratio: 0.5
+  general_thresholds:
+    suspicious_step_m: 3.0
+    invalid_step_m: 6.0
+    suspicious_speed_m_per_frame: 3.0
+    invalid_speed_m_per_frame: 6.0
+    suspicious_travel_per_frame: 1.5
+    invalid_travel_per_frame: 3.0
+    max_jump_ratio_suspicious: 0.10
+    max_jump_ratio_invalid: 0.25
+  per_class_thresholds:
+    Person:
+      suspicious_step_m: 3.0
+      invalid_step_m: 6.0
+    FourierGR1T2:
+      suspicious_step_m: 3.0
+      invalid_step_m: 6.0
+    AgilityDigit:
+      suspicious_step_m: 3.0
+      invalid_step_m: 6.0
+    Forklift:
+      suspicious_step_m: 4.0
+      invalid_step_m: 8.0
+    PalletTruck:
+      suspicious_step_m: 4.0
+      invalid_step_m: 8.0
+    Transporter:
+      suspicious_step_m: 4.0
+      invalid_step_m: 8.0
+    NovaCarter:
+      suspicious_step_m: 4.0
+      invalid_step_m: 8.0
