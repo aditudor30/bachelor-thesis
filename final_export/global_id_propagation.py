@@ -81,8 +81,6 @@ def propagate_global_ids_to_local_records(
         )
         legacy_key = (str(subset), str(record.scene_name), str(record.camera_id), int(record.local_track_id))
         value = candidate_mapping.get(class_key)
-        if value is None:
-            value = candidate_mapping.get(legacy_key)
         candidate_id = None
         global_track_id = None
         if value is not None:
