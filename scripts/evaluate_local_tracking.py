@@ -33,8 +33,21 @@ def evaluate_local_tracking(args: Any) -> None:
 
 def _resolve_track_files(path: Path) -> List[Path]:
     if path.is_file():
+        if not _looks_like_track_csv(path):
+            raise ValueError("Track CSV does not contain local track columns: %s" % path)
         return [path]
-    return sorted(path.rglob("*.csv"))
+    return [candidate for candidate in sorted(path.rglob("*.csv")) if _looks_like_track_csv(candidate)]
+
+
+def _looks_like_track_csv(path: Path) -> bool:
+    required = set(["scene_id", "frame_id", "local_track_id", "detection_id", "class_id"])
+    try:
+        with path.open("r", newline="", encoding="utf-8") as handle:
+            reader = csv.reader(handle)
+            header = next(reader, [])
+    except (IOError, OSError):
+        return False
+    return required.issubset(set(header))
 
 
 def _row_from_metrics(path: Path, metrics: Dict[str, Any]) -> Dict[str, Any]:
