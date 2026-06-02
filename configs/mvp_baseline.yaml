@@ -1,0 +1,176 @@
+mvp:
+  name: "yolo11m_medium_conf001_transition_mvp"
+  description: "Current MVP baseline after detector curriculum, local tracking, MTMC candidates, motion filtering, overlap+transition association, and generic export."
+  python_version: "3.9"
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+
+  detector:
+    family: "YOLO11m"
+    training_stage: "medium curriculum"
+    model_path: "output/yolo_runs/yolo11m_medium_curriculum/weights/best.pt"
+    confidence_threshold: 0.01
+    imgsz: 1280
+    fallback_model: "output/yolo_runs/yolo11m_easy_curriculum/weights/best.pt"
+    note: "Detector is usable for MVP, but PalletTruck and official-val robotic-class coverage remain weak."
+
+  depth:
+    train_val_unit: "millimeters_likely"
+    conversion_to_meters: 0.001
+    default_sampling_method: "center_median"
+    test_depth_available: false
+    note: "Depth is diagnostic/supervision only. The MVP test path uses RGB, calibration, and map data."
+
+  paths:
+    yolo_model_path: "output/yolo_runs/yolo11m_medium_curriculum/weights/best.pt"
+    pipeline_run_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+    local_tracks_root: "output/local_tracks/yolo11m_medium_conf001"
+    tracklets_root: "output/tracklets/yolo11m_medium_conf001"
+    mtmc_candidates_root: "output/mtmc_candidates/yolo11m_medium_conf001_mid_dense"
+    motion_clean_candidates_root: "output/mtmc_candidates_motion_clean/yolo11m_medium_conf001_mid_dense"
+    global_mtmc_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+    final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+
+  subsets:
+    official_val:
+      split: "val"
+      scenes:
+        - "Warehouse_020"
+        - "Warehouse_021"
+        - "Warehouse_022"
+    internal_holdout:
+      split: "train"
+      scenes:
+        - "Warehouse_014"
+        - "Warehouse_015"
+        - "Warehouse_016"
+    test:
+      split: "test"
+      scenes:
+        - "Warehouse_023"
+        - "Warehouse_024"
+        - "Warehouse_025"
+
+  classes:
+    0: "Person"
+    1: "Forklift"
+    2: "PalletTruck"
+    3: "Transporter"
+    4: "FourierGR1T2"
+    5: "AgilityDigit"
+    6: "NovaCarter"
+
+  pipeline:
+    frame_stride: 1
+    max_frames: null
+    build_observations: true
+    depth_sampling_method: "center_median"
+    class_must_match_for_gt_diagnostics: true
+    result_summary:
+      cameras: 118
+      detections: 891254
+      observations: 891254
+      matched_gt: 368532
+      errors: 0
+
+  local_tracking:
+    preset: "mid"
+    max_misses: 45
+    max_3d_distance: 4.0
+    cost_threshold: 0.8
+    min_iou: 0.0
+    result_summary:
+      files: 118
+      records: 891254
+      tracks: 126973
+      global_mean_track_length: 7.019
+      id_switches_approx: 1260
+      fragmentations_approx: 547
+      mean_purity: 0.9537
+
+  tracklet_candidates:
+    min_length: 3
+    min_mean_confidence: 0.01
+    keep_quality_flags:
+      - "good"
+      - "fragmented"
+    trajectory_sample_rate: 1
+    max_trajectory_points: 200
+    result_summary:
+      total_candidates: 126973
+      kept_candidates: 40472
+      rejected_candidates: 86501
+      kept_ratio: 0.3187449300244934
+      reject_reasons:
+        ok: 40472
+        too_short: 86501
+
+  motion_filter:
+    keep_motion_flags:
+      - "motion_good"
+    diagnostic_motion_flags:
+      - "motion_suspicious"
+    result_summary:
+      total_candidates: 40472
+      motion_good: 27540
+      motion_suspicious: 1831
+      motion_invalid: 11101
+      clean_count: 27540
+      max_step_median: 1.1753895716863678
+      max_step_p95: 20.91379787107463
+
+  global_association:
+    association_type: "overlap_plus_transition"
+    class_must_match: true
+    allow_same_camera_links: false
+    enable_overlap_association: true
+    enable_transition_association: true
+    include_singletons: true
+    cost_threshold: 1.0
+    transition_cost_threshold: 1.0
+    result_summary:
+      num_tracks: 26582
+      transition_edges: 9924424
+      transition_edges_accepted: 314
+      multi_camera_tracks: 341
+      global_purity_mean: 0.9755017218857619
+    note: "Transition edges are intentionally sparse and conservative. This is acceptable for MVP."
+
+  final_export:
+    include_unassigned_in_frame_records: true
+    namespace_global_ids: true
+    global_id_stride: 100000
+    drop_invalid_bbox: true
+    drop_unassigned_for_generic_export: true
+    drop_invalid_bbox_for_generic_export: true
+    official_track1_export: "todo_until_schema_confirmed"
+    result_summary:
+      propagation:
+        files: 118
+        input_records: 891254
+        output_records: 891230
+        assigned_records: 396737
+        unassigned_records: 494493
+        assignment_ratio: 0.4451566935583407
+        unique_global_tracks: 17947
+      generic_export:
+        files: 9
+        rows_written: 396737
+      validation:
+        files: 127
+        num_errors: 0
+        num_warnings: 494493
+      eval:
+        assigned_records: 333606
+        unassigned_records: 245311
+        num_records: 578917
+        unique_global_tracks: 7672
+        global_id_purity_mean: 0.9441816653537197
+        fragmentation_approx: 282
+
+  sanity_checks:
+    min_assignment_ratio: 0.40
+    min_global_purity: 0.90
+    expected_generic_export_files: 9
+    require_test_generic_exports: true
+    require_validation_errors_zero: true
+    treat_unassigned_warnings_as_expected: true
