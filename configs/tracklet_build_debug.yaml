@@ -1,0 +1,14 @@
+tracklets:
+  tracking_root: "output/local_tracks/debug_medium"
+  output_root: "output/tracklets/debug_medium"
+  subsets:
+    - "official_val"
+  scenes:
+    - "Warehouse_020"
+  camera_ids:
+    - "Camera_0000"
+  min_length: 3
+  min_mean_confidence: 0.01
+  smooth_trajectory: true
+  smoothing_window: 5
+  progress: true
