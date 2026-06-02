@@ -1,0 +1,32 @@
+global_mtmc:
+  class_must_match: true
+  allow_same_camera_links: false
+  enable_overlap_association: true
+  enable_transition_association: true
+  include_singletons: true
+
+  max_frame_delta_for_overlap: 3
+  max_mean_overlap_distance: 4.0
+  max_median_overlap_distance: 3.5
+
+  min_temporal_gap: 1
+  max_temporal_gap: 150
+  max_entry_exit_distance: 6.0
+  max_normalized_distance: 0.5
+  max_expected_position_error: 8.0
+  max_velocity_angle_deg: 120.0
+
+  overlap_distance_weight: 1.0
+  transition_distance_weight: 1.0
+  entry_exit_distance_weight: 1.0
+  normalized_distance_weight: 0.5
+  temporal_gap_weight: 0.01
+  velocity_weight: 0.05
+  velocity_angle_weight: 0.05
+  expected_error_weight: 0.5
+  confidence_weight: 0.05
+
+  cost_threshold: 1.4
+  transition_cost_threshold: 1.2
+
+  max_candidates_per_group: null

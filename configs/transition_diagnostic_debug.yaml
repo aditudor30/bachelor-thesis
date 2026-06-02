@@ -1,0 +1,19 @@
+transition:
+  class_must_match: true
+  allow_same_camera_links: false
+  min_temporal_gap: 1
+  max_temporal_gap: 120
+  max_entry_exit_distance: 5.0
+  max_normalized_distance: 0.5
+  max_velocity_angle_deg: 120.0
+  max_expected_position_error: 6.0
+
+  entry_exit_distance_weight: 1.0
+  normalized_distance_weight: 0.5
+  temporal_gap_weight: 0.01
+  velocity_angle_weight: 0.1
+  expected_error_weight: 0.5
+  confidence_weight: 0.05
+  transition_cost_threshold: 1.0
+
+  max_candidates_per_group: 2000
