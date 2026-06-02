@@ -1,0 +1,14 @@
+final_export:
+  root: "/path/to/MTMC_Tracking_2026"
+  local_tracks_root: "output/local_tracks/yolo11m_medium_conf001"
+  global_mtmc_root: "output/global_mtmc_transition/debug"
+  output_root: "output/final_mvp_exports/debug_transition"
+  include_unassigned: true
+  drop_unassigned_for_generic_export: true
+  progress: true
+
+  subsets:
+    official_val:
+      split: "val"
+      scenes:
+        - "Warehouse_020"

@@ -1,0 +1,28 @@
+final_export:
+  root: "/path/to/MTMC_Tracking_2026"
+  local_tracks_root: "output/local_tracks/yolo11m_medium_conf001"
+  global_mtmc_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  output_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  include_unassigned: true
+  drop_unassigned_for_generic_export: true
+  progress: true
+
+  subsets:
+    official_val:
+      split: "val"
+      scenes:
+        - "Warehouse_020"
+        - "Warehouse_021"
+        - "Warehouse_022"
+    internal_holdout:
+      split: "train"
+      scenes:
+        - "Warehouse_014"
+        - "Warehouse_015"
+        - "Warehouse_016"
+    test:
+      split: "test"
+      scenes:
+        - "Warehouse_023"
+        - "Warehouse_024"
+        - "Warehouse_025"
