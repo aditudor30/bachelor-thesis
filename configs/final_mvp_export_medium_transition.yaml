@@ -4,6 +4,8 @@ final_export:
   global_mtmc_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
   output_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
   include_unassigned: true
+  namespace_global_ids: true
+  global_id_stride: 100000
   drop_unassigned_for_generic_export: true
   progress: true
 

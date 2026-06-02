@@ -4,6 +4,7 @@ import numpy as np
 
 from deep_oc_sort_3d.final_export.global_id_propagation import (
     load_candidate_global_id_mapping,
+    namespace_global_track_id,
     propagate_global_ids_to_local_records,
 )
 from deep_oc_sort_3d.mtmc.candidate_io import write_candidates_jsonl
@@ -98,3 +99,11 @@ def test_load_mapping_and_propagate_include_drop_unassigned(tmp_path):
     assert len(dropped) == 1
     assert included[0].global_track_id == 7
     assert included[1].global_track_id is None
+
+
+def test_namespace_global_track_id_separates_scenes_and_subsets():
+    a = namespace_global_track_id("official_val", "Warehouse_020", 7)
+    b = namespace_global_track_id("internal_holdout", "Warehouse_020", 7)
+    c = namespace_global_track_id("official_val", "Warehouse_021", 7)
+    assert a != b
+    assert a != c

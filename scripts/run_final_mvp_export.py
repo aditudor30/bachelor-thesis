@@ -85,6 +85,8 @@ def _propagate_scene(subset: str, scene_name: str, options: Dict[str, Any]) -> L
             output_jsonl=output_jsonl,
             include_unassigned=options["include_unassigned"],
             show_progress=options["progress"],
+            namespace_global_ids=options["namespace_global_ids"],
+            global_id_stride=options["global_id_stride"],
         )
         rows.append(row)
     return rows
@@ -112,11 +114,21 @@ def _validate_outputs(options: Dict[str, Any]) -> None:
     rows = []
     for path in sorted((output_root / "frame_global_records").rglob("*_global_records.csv")):
         report = validate_global_frame_record_file(path)
-        write_validation_report(report, validation_root / "frame_records" / (path.stem + "_validation.json"))
+        write_validation_report(
+            report,
+            validation_root
+            / "frame_records"
+            / _relative_validation_path(output_root / "frame_global_records", path),
+        )
         rows.append(_validation_row(path, "frame_records", report))
     for path in sorted((output_root / "generic_tracking_export").rglob("*.csv")):
         report = validate_generic_tracking_export(path)
-        write_validation_report(report, validation_root / "generic_export" / (path.stem + "_validation.json"))
+        write_validation_report(
+            report,
+            validation_root
+            / "generic_export"
+            / _relative_validation_path(output_root / "generic_tracking_export", path),
+        )
         rows.append(_validation_row(path, "generic_export", report))
     summary = {
         "files": len(rows),
@@ -188,6 +200,8 @@ def _resolve_options(config: Dict[str, Any], args: Any) -> Dict[str, Any]:
         "global_mtmc_root": _value(None, config.get("global_mtmc_root"), "output/global_mtmc_transition/debug"),
         "output_root": _value(None, config.get("output_root"), "output/final_mvp_exports/debug_transition"),
         "include_unassigned": bool(_value(args.include_unassigned, config.get("include_unassigned"), True)),
+        "namespace_global_ids": bool(_value(args.namespace_global_ids, config.get("namespace_global_ids"), True)),
+        "global_id_stride": int(_value(args.global_id_stride, config.get("global_id_stride"), 100000)),
         "drop_unassigned_for_generic_export": bool(
             _value(args.drop_unassigned_for_generic_export, config.get("drop_unassigned_for_generic_export"), True)
         ),
@@ -254,6 +268,15 @@ def _infer_subset(path: Path, kind: str) -> str:
     return "unknown"
 
 
+def _relative_validation_path(root: Path, path: Path) -> Path:
+    try:
+        relative = path.relative_to(root)
+    except ValueError:
+        relative = Path(path.name)
+    stem = relative.with_suffix("")
+    return Path(str(stem) + "_validation.json")
+
+
 def _progress_iter(values: List[Any], show_progress: bool, desc: str, unit: str) -> Iterable[Any]:
     if not show_progress:
         return values
@@ -282,6 +305,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
     assign_group = parser.add_mutually_exclusive_group()
     assign_group.add_argument("--include-unassigned", dest="include_unassigned", action="store_true", default=None)
     assign_group.add_argument("--drop-unassigned", dest="include_unassigned", action="store_false")
+    namespace_group = parser.add_mutually_exclusive_group()
+    namespace_group.add_argument("--namespace-global-ids", dest="namespace_global_ids", action="store_true", default=None)
+    namespace_group.add_argument("--keep-local-global-ids", dest="namespace_global_ids", action="store_false")
+    parser.add_argument("--global-id-stride", type=int, default=None)
     generic_group = parser.add_mutually_exclusive_group()
     generic_group.add_argument("--drop-unassigned-generic", dest="drop_unassigned_for_generic_export", action="store_true", default=None)
     generic_group.add_argument("--include-unassigned-generic", dest="drop_unassigned_for_generic_export", action="store_false")

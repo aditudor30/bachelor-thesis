@@ -4,6 +4,8 @@ final_export:
   global_mtmc_root: "output/global_mtmc_transition/debug"
   output_root: "output/final_mvp_exports/debug_transition"
   include_unassigned: true
+  namespace_global_ids: true
+  global_id_stride: 100000
   drop_unassigned_for_generic_export: true
   progress: true
 

@@ -10,28 +10,56 @@ from deep_oc_sort_3d.final_export.generic_export import (
     write_global_frame_records_jsonl,
 )
 from deep_oc_sort_3d.mtmc.candidate_io import read_candidates_file
+from deep_oc_sort_3d.data.dataset_structure import scene_name_to_id
 from deep_oc_sort_3d.tracking.track_io import read_local_tracks_csv
 from deep_oc_sort_3d.tracking.track_types import LocalTrackRecord
 
 
-CandidateMapping = Dict[Tuple[str, str, str, int], Tuple[str, int]]
+CandidateMapping = Dict[Tuple[Any, ...], Tuple[str, int]]
 
 
-def load_candidate_global_id_mapping(candidates_with_global_ids_path: Union[str, Path]) -> CandidateMapping:
+def load_candidate_global_id_mapping(
+    candidates_with_global_ids_path: Union[str, Path],
+    namespace_global_ids: bool = False,
+    global_id_stride: int = 100000,
+) -> CandidateMapping:
     """Load mapping from local track identity to candidate/global ids."""
     path = Path(candidates_with_global_ids_path)
     candidates = read_candidates_file(path)
     mapping = {}
+    ambiguous_legacy_keys = set()
     for candidate in candidates:
         if candidate.global_track_id is None:
             continue
-        key = (
+        global_track_id = int(candidate.global_track_id)
+        if namespace_global_ids:
+            global_track_id = namespace_global_track_id(
+                candidate.subset,
+                candidate.scene_name,
+                global_track_id,
+                global_id_stride=global_id_stride,
+            )
+        class_key = (
+            str(candidate.subset),
+            str(candidate.scene_name),
+            str(candidate.camera_id),
+            int(candidate.local_track_id),
+            int(candidate.class_id),
+        )
+        legacy_key = (
             str(candidate.subset),
             str(candidate.scene_name),
             str(candidate.camera_id),
             int(candidate.local_track_id),
         )
-        mapping[key] = (str(candidate.candidate_id), int(candidate.global_track_id))
+        value = (str(candidate.candidate_id), int(global_track_id))
+        mapping[class_key] = value
+        if legacy_key in mapping and mapping[legacy_key] != value:
+            ambiguous_legacy_keys.add(legacy_key)
+        else:
+            mapping[legacy_key] = value
+    for key in ambiguous_legacy_keys:
+        mapping.pop(key, None)
     return mapping
 
 
@@ -44,8 +72,17 @@ def propagate_global_ids_to_local_records(
     """Propagate global ids from candidate mapping to local track records."""
     output = []
     for record in local_records:
-        key = (str(subset), str(record.scene_name), str(record.camera_id), int(record.local_track_id))
-        value = candidate_mapping.get(key)
+        class_key = (
+            str(subset),
+            str(record.scene_name),
+            str(record.camera_id),
+            int(record.local_track_id),
+            int(record.class_id),
+        )
+        legacy_key = (str(subset), str(record.scene_name), str(record.camera_id), int(record.local_track_id))
+        value = candidate_mapping.get(class_key)
+        if value is None:
+            value = candidate_mapping.get(legacy_key)
         candidate_id = None
         global_track_id = None
         if value is not None:
@@ -88,10 +125,16 @@ def propagate_for_camera_file(
     output_jsonl: Optional[Path],
     include_unassigned: bool,
     show_progress: bool = True,
+    namespace_global_ids: bool = True,
+    global_id_stride: int = 100000,
 ) -> Dict[str, Any]:
     """Propagate global ids for one camera local-track file."""
     try:
-        mapping = load_candidate_global_id_mapping(candidates_with_global_ids_path)
+        mapping = load_candidate_global_id_mapping(
+            candidates_with_global_ids_path,
+            namespace_global_ids=namespace_global_ids,
+            global_id_stride=global_id_stride,
+        )
         local_records = read_local_tracks_csv(local_tracks_csv)
         records = propagate_global_ids_to_local_records(
             local_records,
@@ -116,6 +159,8 @@ def propagate_for_camera_file(
             "unassigned_records": len(unassigned),
             "unique_local_tracks": len(set([record.local_track_id for record in local_records])),
             "unique_global_tracks": len(set([record.global_track_id for record in assigned])),
+            "namespace_global_ids": bool(namespace_global_ids),
+            "global_id_stride": int(global_id_stride),
             "output_csv": str(output_csv),
             "status": "ok",
             "error_message": "",
@@ -131,6 +176,8 @@ def propagate_for_camera_file(
             "unassigned_records": 0,
             "unique_local_tracks": 0,
             "unique_global_tracks": 0,
+            "namespace_global_ids": bool(namespace_global_ids),
+            "global_id_stride": int(global_id_stride),
             "output_csv": str(output_csv),
             "status": "error",
             "error_message": str(exc),
@@ -141,6 +188,39 @@ def _sort_global_id(record: GlobalFrameRecord) -> int:
     if record.global_track_id is None:
         return 10**12
     return int(record.global_track_id)
+
+
+def namespace_global_track_id(
+    subset: str,
+    scene_name: str,
+    global_track_id: int,
+    global_id_stride: int = 100000,
+) -> int:
+    """Return deterministic export-global id for a scene-local global track id."""
+    scene_id = scene_name_to_id(str(scene_name))
+    if scene_id is None:
+        scene_id = _stable_small_hash(str(scene_name))
+    subset_offset = _subset_offset(str(subset), int(global_id_stride))
+    return int(subset_offset + int(scene_id) * int(global_id_stride) + int(global_track_id))
+
+
+def _subset_offset(subset: str, global_id_stride: int) -> int:
+    offsets = {
+        "train": 0,
+        "internal_holdout": 1000,
+        "official_val": 2000,
+        "val": 2000,
+        "test": 3000,
+    }
+    base = offsets.get(subset, 4000 + _stable_small_hash(subset))
+    return int(base) * int(global_id_stride)
+
+
+def _stable_small_hash(value: str) -> int:
+    total = 0
+    for char in value:
+        total = (total * 131 + ord(char)) % 100000
+    return total
 
 
 def _scene_from_path(path: Path) -> str:

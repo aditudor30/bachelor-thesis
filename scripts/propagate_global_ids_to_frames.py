@@ -18,6 +18,8 @@ def propagate_global_ids_to_frames(args: Any) -> None:
         output_jsonl=args.output_jsonl,
         include_unassigned=args.include_unassigned,
         show_progress=args.progress,
+        namespace_global_ids=args.namespace_global_ids,
+        global_id_stride=args.global_id_stride,
     )
     print(json.dumps(row, indent=2, sort_keys=True))
 
@@ -33,10 +35,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
     assign_group = parser.add_mutually_exclusive_group()
     assign_group.add_argument("--include-unassigned", dest="include_unassigned", action="store_true")
     assign_group.add_argument("--drop-unassigned", dest="include_unassigned", action="store_false")
+    namespace_group = parser.add_mutually_exclusive_group()
+    namespace_group.add_argument("--namespace-global-ids", dest="namespace_global_ids", action="store_true")
+    namespace_group.add_argument("--keep-local-global-ids", dest="namespace_global_ids", action="store_false")
+    parser.add_argument("--global-id-stride", type=int, default=100000)
     progress_group = parser.add_mutually_exclusive_group()
     progress_group.add_argument("--progress", dest="progress", action="store_true")
     progress_group.add_argument("--no-progress", dest="progress", action="store_false")
-    parser.set_defaults(include_unassigned=True, progress=True)
+    parser.set_defaults(include_unassigned=True, namespace_global_ids=True, progress=True)
     return parser
 
 

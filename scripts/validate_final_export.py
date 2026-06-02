@@ -20,12 +20,18 @@ def validate_final_export(args: Any) -> None:
     rows = []
     for path in _progress_iter(frame_files, args.progress, "validate frame records", "file"):
         report = validate_global_frame_record_file(path)
-        report_path = args.output_root / "frame_records" / (path.stem + "_validation.json")
+        report_path = args.output_root / "frame_records" / _relative_validation_path(
+            args.export_root / "frame_global_records",
+            path,
+        )
         write_validation_report(report, report_path)
         rows.append(_row(path, "frame_records", report))
     for path in _progress_iter(generic_files, args.progress, "validate generic exports", "file"):
         report = validate_generic_tracking_export(path)
-        report_path = args.output_root / "generic_export" / (path.stem + "_validation.json")
+        report_path = args.output_root / "generic_export" / _relative_validation_path(
+            args.export_root / "generic_tracking_export",
+            path,
+        )
         write_validation_report(report, report_path)
         rows.append(_row(path, "generic_export", report))
     summary = _summary(rows)
@@ -93,6 +99,15 @@ def _infer_subset(path: Path, kind: str) -> str:
         if index + 1 < len(parts):
             return str(parts[index + 1])
     return "unknown"
+
+
+def _relative_validation_path(root: Path, path: Path) -> Path:
+    try:
+        relative = path.relative_to(root)
+    except ValueError:
+        relative = Path(path.name)
+    stem = relative.with_suffix("")
+    return Path(str(stem) + "_validation.json")
 
 
 def _progress_iter(values: List[Any], show_progress: bool, desc: str, unit: str) -> Iterable[Any]:
