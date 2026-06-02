@@ -3,7 +3,7 @@
 import csv
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from deep_oc_sort_3d.mtmc.candidate_io import candidate_to_csv_row
 from deep_oc_sort_3d.mtmc.candidate_motion_filtering import attach_motion_metrics_to_candidate_dict
