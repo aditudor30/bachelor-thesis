@@ -23,7 +23,13 @@ def validate_global_frame_records(records: List[GlobalFrameRecord]) -> Dict[str,
     scene_by_global = {}
     sorted_keys = []
     for record in records:
-        key = (record.scene_name, record.camera_id, record.frame_id, record.global_track_id, record.detection_id)
+        key = (
+            record.scene_name,
+            record.camera_id,
+            record.frame_id,
+            _sortable_global_id(record.global_track_id),
+            record.detection_id,
+        )
         sorted_keys.append(key)
         if key in seen:
             errors.append("duplicate_row:%s" % str(key))
@@ -124,6 +130,12 @@ def _validate_one_record(record: GlobalFrameRecord, errors: List[str], warnings:
         arr = np.asarray(record.center_3d, dtype=float)
         if not np.all(np.isfinite(arr)):
             errors.append("center_3d_nan_or_inf")
+
+
+def _sortable_global_id(global_track_id: Any) -> int:
+    if global_track_id is None:
+        return 10**12
+    return int(global_track_id)
 
 
 def _validate_bbox_values(row: Dict[str, Any], errors: List[str]) -> None:
