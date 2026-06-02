@@ -15,7 +15,12 @@ def build_mvp_runbook_commands(config: Dict[str, Any]) -> List[str]:
         paths = {}
     pipeline_root = _path(paths, "pipeline_run_root", "output/pipeline_runs/yolo11m_medium_curriculum_conf001")
     local_tracks_root = _path(paths, "local_tracks_root", "output/local_tracks/yolo11m_medium_conf001")
-    tracklets_root = _path(paths, "tracklets_root", "output/tracklets/yolo11m_medium_conf001")
+    yolo_model_path = _path(
+        paths,
+        "yolo_model_path",
+        "runs/detect/output/yolo_runs/yolo11m_medium_curriculum/weights/best.pt",
+    )
+    tracklets_root = _path(paths, "tracklets_root", "output/tracklets/yolo11m_medium_conf001_mid")
     candidates_root = _path(paths, "mtmc_candidates_root", "output/mtmc_candidates/yolo11m_medium_conf001_mid_dense")
     motion_clean_root = _path(
         paths,
@@ -27,7 +32,7 @@ def build_mvp_runbook_commands(config: Dict[str, Any]) -> List[str]:
         "DATA_ROOT=%s" % dataset_root,
         "python -m deep_oc_sort_3d.scripts.run_detection_to_observation_pipeline "
         "--config deep_oc_sort_3d/configs/pipeline_yolo11m_medium_conf001.yaml "
-        "--root \"$DATA_ROOT\" --progress",
+        "--root \"$DATA_ROOT\" --model %s --progress" % yolo_model_path,
         "python -m deep_oc_sort_3d.scripts.run_batch_local_tracking "
         "--config deep_oc_sort_3d/configs/local_tracking_medium_conf001.yaml "
         "--run-root %s --output-root %s "
