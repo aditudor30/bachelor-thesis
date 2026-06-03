@@ -180,9 +180,9 @@ def _collapse_rows_for_official_track1(
         collapsed,
         key=lambda item: (
             _safe_int(_mapped_value(item, "scene_id", mapping.get("scene_id", ""), schema)),
-            _safe_int(_mapped_value(item, "frame_id", mapping.get("frame_id", ""), schema)),
-            _safe_int(_mapped_value(item, "object_id", mapping.get("object_id", ""), schema)),
             _safe_int(_mapped_value(item, "class_id", mapping.get("class_id", ""), schema)),
+            _safe_int(_mapped_value(item, "object_id", mapping.get("object_id", ""), schema)),
+            _safe_int(_mapped_value(item, "frame_id", mapping.get("frame_id", ""), schema)),
         ),
     )
 

@@ -1,0 +1,27 @@
+submission_package:
+  baseline_name: "baseline_v1_geometry_only"
+  track1_path: "output/track1_submission/yolo11m_medium_conf001_transition/track1.txt"
+  generic_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/generic_tracking_export/test"
+  output_package_root: "output/submission_packages/baseline_v1_geometry_only"
+  expected_scene_ids: [23, 24, 25]
+  valid_class_ids: [0, 1, 2, 3, 4, 5, 6]
+  make_zip: true
+
+  configs:
+    - "deep_oc_sort_3d/configs/mvp_baseline.yaml"
+    - "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+    - "deep_oc_sort_3d/configs/track1_export_from_mvp.yaml"
+
+  reports:
+    - "output/track1_submission/yolo11m_medium_conf001_transition/final_checks/final_validation_report.json"
+    - "output/track1_submission/yolo11m_medium_conf001_transition/final_checks/dedup_audit_report.json"
+    - "output/track1_submission/yolo11m_medium_conf001_transition/final_checks/submission_summary.json"
+    - "output/track1_submission/yolo11m_medium_conf001_transition/final_checks/submission_summary.md"
+
+  final_checks_root: "output/track1_submission/yolo11m_medium_conf001_transition/final_checks"
+
+  notes:
+    - "Geometry-only MVP baseline."
+    - "No ReID."
+    - "No neural 3D bbox head."
+    - "Global association uses overlap + transition."
