@@ -1,0 +1,16 @@
+track1_export:
+  generic_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/generic_tracking_export/test"
+  output_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+  schema_confirmed: false
+  schema_yaml: null
+  force_unconfirmed_preview: true
+  subsets:
+    - "test"
+  scenes:
+    - "Warehouse_023"
+    - "Warehouse_024"
+    - "Warehouse_025"
+  progress: true
+  notes:
+    - "Official Track 1 schema must be confirmed before producing final track1.txt."
+    - "This config can produce only an unconfirmed preview unless schema_yaml is provided."
