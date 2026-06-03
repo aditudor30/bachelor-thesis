@@ -1,0 +1,26 @@
+reid:
+  root: "/path/to/MTMC_Tracking_2026"
+  records_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/frame_global_records"
+  output_root: "output/reid_embeddings/yolo11m_medium_conf001_resnet_optional"
+  backend: "torchvision_resnet"
+  aggregation: "mean"
+  subsets:
+    - "official_val"
+    - "internal_holdout"
+    - "test"
+  scenes: null
+  camera_ids: null
+  max_crops_per_tracklet: 8
+  padding_ratio: 0.10
+  resize_width: 224
+  resize_height: 224
+  save_crops: false
+  max_tracks_per_camera: null
+  progress: true
+  backend_config:
+    model_name: "resnet50"
+    weights_path: null
+    allow_random_weights: false
+    fallback_backend: "color_histogram"
+    device: "cuda"
+

@@ -1,0 +1,23 @@
+reid:
+  root: "/path/to/MTMC_Tracking_2026"
+  records_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/frame_global_records"
+  output_root: "output/reid_embeddings/yolo11m_medium_conf001_colorhist"
+  backend: "color_histogram"
+  aggregation: "mean"
+  subsets:
+    - "official_val"
+    - "internal_holdout"
+    - "test"
+  scenes: null
+  camera_ids: null
+  max_crops_per_tracklet: 8
+  padding_ratio: 0.10
+  resize_width: 128
+  resize_height: 256
+  save_crops: false
+  max_tracks_per_camera: null
+  progress: true
+  backend_config:
+    color_space: "rgb"
+    bins_per_channel: 16
+
