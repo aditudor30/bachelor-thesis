@@ -40,6 +40,7 @@ def main() -> None:
             max_tracks=args.max_tracks,
             equal_aspect=True,
             note_not_map_aligned=True,
+            figsize=(args.figsize_width, args.figsize_height),
         )
         summary["plot"] = plot_summary
         write_bev_summary_json(summary, summary_output)
@@ -62,6 +63,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sort-by", choices=["length", "mean_confidence", "duration"], default="length")
     parser.add_argument("--lower-percentile", type=float, default=2.0)
     parser.add_argument("--upper-percentile", type=float, default=98.0)
+    parser.add_argument("--figsize-width", type=float, default=8.0)
+    parser.add_argument("--figsize-height", type=float, default=8.0)
     parser.add_argument("--no-percentile-clipping", dest="use_percentile_clipping", action="store_false", default=True)
     parser.add_argument("--progress", dest="progress", action="store_true", default=True)
     parser.add_argument("--no-progress", dest="progress", action="store_false")
@@ -118,4 +121,3 @@ def _print_progress_iter(values: List[Any], desc: str) -> Iterable[Any]:
 
 if __name__ == "__main__":
     main()
-

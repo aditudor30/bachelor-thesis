@@ -42,6 +42,7 @@ def main() -> None:
         max_tracks=args.max_tracks,
         equal_aspect=True,
         note_not_map_aligned=True,
+        figsize=(args.figsize_width, args.figsize_height),
     )
     summary["plot"] = plot_summary
     if args.summary_output is not None:
@@ -58,6 +59,7 @@ def main() -> None:
             max_tracks=args.max_tracks,
             equal_aspect=True,
             note_not_map_aligned=True,
+            figsize=(args.figsize_width, args.figsize_height),
         )
     print_bev_summary(summary)
     print("output: %s" % args.output)
@@ -86,6 +88,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--show-start-end", dest="show_start_end", action="store_true", default=True)
     parser.add_argument("--no-show-start-end", dest="show_start_end", action="store_false")
     parser.add_argument("--draw-points", action="store_true", default=False)
+    parser.add_argument("--figsize-width", type=float, default=8.0)
+    parser.add_argument("--figsize-height", type=float, default=8.0)
     parser.add_argument("--progress", dest="progress", action="store_true", default=True)
     parser.add_argument("--no-progress", dest="progress", action="store_false")
     return parser.parse_args()

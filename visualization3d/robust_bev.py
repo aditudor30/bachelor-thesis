@@ -41,6 +41,7 @@ def plot_robust_bev_tracks(
     max_tracks: Optional[int] = 100,
     equal_aspect: bool = True,
     note_not_map_aligned: bool = True,
+    figsize: Tuple[float, float] = (8.0, 8.0),
 ) -> Dict[str, Any]:
     """Save a robust BEV trajectory plot.
 
@@ -54,7 +55,7 @@ def plot_robust_bev_tracks(
     output.parent.mkdir(parents=True, exist_ok=True)
     axis_limits = _axis_limits(selected, lower_percentile, upper_percentile, use_percentile_clipping)
 
-    fig, ax = plt.subplots(figsize=(8, 8))
+    fig, ax = plt.subplots(figsize=figsize)
     for track in selected:
         x_values = np.asarray(track.x, dtype=float)
         y_values = np.asarray(track.y, dtype=float)
@@ -102,6 +103,7 @@ def plot_robust_bev_tracks(
             "upper": float(upper_percentile),
         },
         "note": "Coordinate-space BEV; not map-aligned; clipping affects visualization only.",
+        "figsize": [float(figsize[0]), float(figsize[1])],
     }
 
 
@@ -153,4 +155,3 @@ def _color_for_track(track_id: int) -> Any:
     green = float((value >> 8) & 255) / 255.0
     blue = float((value >> 16) & 255) / 255.0
     return (red, green, blue)
-
