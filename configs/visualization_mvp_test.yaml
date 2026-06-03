@@ -1,0 +1,13 @@
+visualization:
+  root: "/path/to/MTMC_Tracking_2026"
+  records_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/frame_global_records"
+  generic_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/generic_tracking_export"
+  output_root: "output/visualizations_mvp/test"
+  subsets: ["test"]
+  scenes: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]
+  camera_ids: null
+  frames: [100, 300, 500]
+  draw_2d: true
+  draw_3d: true
+  progress: true
+
