@@ -11,8 +11,11 @@ def test_track1_schema_discovery_finds_text_matches(tmp_path):
 
     report = discover_track1_schema(tmp_path, show_progress=False)
 
-    assert len(report["matches"]) == 1
-    assert report["matches"][0]["matched_term"] in ("Track 1", "track 1", "submission")
+    assert len(report["matches"]) >= 1
+    matched_terms = set([item["matched_term"] for item in report["matches"]])
+    assert matched_terms.intersection(set(["Track 1", "track 1", "submission"]))
+    assert set([item["file_path"] for item in report["matches"]]) == set(["docs/challenge.md"])
+    assert set([item["line_number"] for item in report["matches"]]) == set([1])
     assert not report["found"]
 
 
