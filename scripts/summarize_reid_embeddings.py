@@ -11,7 +11,7 @@ def main() -> None:
     args = parse_args()
     records = []
     for path in sorted(args.reid_root.rglob("*.jsonl")):
-        if "embedding" in path.name:
+        if should_read_jsonl(path):
             records.extend(read_reid_embeddings_jsonl(path))
     summary = summarize_reid_embeddings(records)
     print_reid_summary(summary)
@@ -29,6 +29,15 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def should_read_jsonl(path: Path) -> bool:
+    """Return True for ReID embedding JSONL files, including debug outputs."""
+    name = path.name
+    if name.endswith("_summary.jsonl"):
+        return False
+    if "manifest" in name:
+        return False
+    return True
+
+
 if __name__ == "__main__":
     main()
-

@@ -25,8 +25,10 @@ def main() -> None:
     args = parse_args()
     config = load_config(args.config)
     options = build_options(config, args)
+    validate_options(options)
     backend = build_embedding_backend(backend_config(options))
     record_files = find_record_files(Path(options["records_root"]), options)
+    print("record_files: %d" % len(record_files))
     all_records = []
     summaries = []
     for subset, scene_name, camera_id, records_path in _progress_iter(record_files, options["progress"], "batch ReID", "camera"):
@@ -38,6 +40,7 @@ def main() -> None:
             all_records.extend(candidate_records)
     global_summary = summarize_reid_embeddings(all_records)
     global_summary["camera_summaries"] = summaries
+    global_summary["status_counts"] = status_counts(summaries)
     summary_root = Path(options["output_root"]) / "summaries"
     write_reid_summary_json(global_summary, summary_root / "reid_extraction_summary.json")
     write_reid_summary_csv(summaries, summary_root / "reid_extraction_summary.csv")
@@ -45,6 +48,9 @@ def main() -> None:
     write_reid_summary_csv(per_field_rows(all_records, "subset"), summary_root / "per_subset_summary.csv")
     print("processed_cameras: %d" % len(summaries))
     print("total_embeddings: %d" % len(all_records))
+    print("status_counts: %s" % str(global_summary["status_counts"]))
+    if len(all_records) == 0:
+        print("warning: no embeddings were produced; inspect status_counts and reid_extraction_summary.csv")
     print("summary: %s" % (summary_root / "reid_extraction_summary.json"))
 
 
@@ -73,7 +79,15 @@ def process_camera(subset: str, scene_name: str, camera_id: str, records_path: P
     records = read_records(records_path)
     video_path = find_video_path(Path(options["root"]), split, scene_name, camera_id)
     if video_path is None:
-        return [], [], [], {"subset": subset, "scene_name": scene_name, "camera_id": camera_id, "status": "missing_video", "records": len(records)}
+        expected_scene = get_scene_paths(Path(options["root"]), split, scene_name)
+        return [], [], [], {
+            "subset": subset,
+            "scene_name": scene_name,
+            "camera_id": camera_id,
+            "status": "missing_video",
+            "records": len(records),
+            "expected_videos_dir": str(expected_scene.videos_dir),
+        }
     frame_loader = lambda frame_id: safe_read_video_frame(video_path, int(frame_id))
     tracklet_groups = group_records(records, "local_track_id", options.get("max_tracks_per_camera"))
     tracklet_embeddings = []
@@ -210,6 +224,16 @@ def build_options(config: Dict[str, Any], args: argparse.Namespace) -> Dict[str,
     return options
 
 
+def validate_options(options: Dict[str, Any]) -> None:
+    """Validate important paths before running batch extraction."""
+    root = Path(str(options.get("root", "")))
+    records_root = Path(str(options.get("records_root", "")))
+    if not root.exists() or not root.is_dir():
+        raise ValueError("Dataset root missing or not a directory: %s" % root)
+    if not records_root.exists() or not records_root.is_dir():
+        raise ValueError("records_root missing or not a directory: %s" % records_root)
+
+
 def backend_config(options: Dict[str, Any]) -> Dict[str, Any]:
     """Build backend config."""
     cfg = dict(options.get("backend_config", {}))
@@ -283,6 +307,15 @@ def per_field_rows(records: List[Any], field: str) -> List[Dict[str, Any]]:
         key = str(getattr(record, field, ""))
         counts[key] = counts.get(key, 0) + 1
     return [{"name": key, "count": value} for key, value in sorted(counts.items())]
+
+
+def status_counts(summaries: List[Dict[str, Any]]) -> Dict[str, int]:
+    """Count per-camera processing statuses."""
+    counts = {}
+    for summary in summaries:
+        status = str(summary.get("status", "unknown"))
+        counts[status] = counts.get(status, 0) + 1
+    return counts
 
 
 def _filter_set(value: Any) -> Optional[set]:
