@@ -1,0 +1,15 @@
+paper_figures:
+  selected_figures_root: "output/visualizations_mvp/selected_figures"
+  bev_figures_root: "output/visualizations_mvp"
+  output_root: "output/visualizations_mvp/paper_panels"
+  panel_name: "mvp_result_panel.png"
+
+captions:
+  tracking_2d: "Frame-level result with 2D detections and propagated global identities."
+  cuboid_3d: "Diagnostic 3D cuboid projection using available 3D geometry and camera calibration."
+  bev: "BEV trajectory visualization in 3D coordinate space."
+
+notes:
+  - "3D cuboids are diagnostic visualizations, not the critical submission output."
+  - "BEV is coordinate-space visualization and not necessarily map-aligned."
+

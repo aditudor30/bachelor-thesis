@@ -1,0 +1,16 @@
+figure_selection:
+  root: "/path/to/MTMC_Tracking_2026"
+  records_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/frame_global_records"
+  generic_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/generic_tracking_export"
+  output_root: "output/visualizations_mvp"
+  subsets:
+    - "official_val"
+    - "test"
+  frame_stride: 50
+  max_frames_per_camera: 100
+  top_k: 30
+  min_records: 3
+  max_records: 30
+  min_projectable_3d: 3
+  progress: true
+
