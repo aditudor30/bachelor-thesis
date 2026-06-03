@@ -1,0 +1,16 @@
+robust_bev:
+  generic_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/generic_tracking_export/test"
+  output_root: "output/visualizations_mvp/robust_bev_paper"
+  x_column: "center_x"
+  y_column: "center_y"
+  min_track_length: 10
+  max_tracks: 50
+  sort_by: "length"
+  lower_percentile: 5.0
+  upper_percentile: 95.0
+  use_percentile_clipping: true
+  show_start_end: true
+  draw_points: false
+  note_not_map_aligned: true
+  progress: true
+
