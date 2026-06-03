@@ -33,14 +33,29 @@ def test_track1_writer_confirmed_schema_writes_track1(tmp_path):
     schema = Track1ExportSchema(
         schema_confirmed=True,
         source="dummy",
-        columns=["scene_name", "frame_id", "global_track_id", "x1"],
-        has_header=True,
-        delimiter=",",
-        frame_indexing="zero_based",
+        columns=["scene_id", "class_id", "object_id", "frame_id", "x", "y", "z", "width", "length", "height", "yaw"],
+        has_header=False,
+        delimiter=" ",
+        frame_indexing="unknown",
         id_scope="global",
         notes="dummy",
     )
-    mapping = build_track1_mapping(schema, ["scene_name", "frame_id", "global_track_id", "x1"])
+    mapping = build_track1_mapping(
+        schema,
+        [
+            "scene_name",
+            "class_id",
+            "global_track_id",
+            "frame_id",
+            "center_x",
+            "center_y",
+            "center_z",
+            "width_3d",
+            "length_3d",
+            "height_3d",
+            "yaw",
+        ],
+    )
     output_path = tmp_path / "submission" / "track1.txt"
 
     summary = export_track1_from_generic(
@@ -54,9 +69,8 @@ def test_track1_writer_confirmed_schema_writes_track1(tmp_path):
 
     assert summary["official_export_created"]
     assert output_path.exists()
-    rows = list(csv.reader(output_path.open("r", newline="", encoding="utf-8")))
-    assert rows[0] == ["scene_name", "frame_id", "global_track_id", "x1"]
-    assert rows[1] == ["Warehouse_023", "0", "10", "1.0"]
+    rows = list(csv.reader(output_path.open("r", newline="", encoding="utf-8"), delimiter=" "))
+    assert rows[0] == ["23", "0", "10", "0", "0.0", "0.0", "0.0", "1.0", "1.0", "1.0", "0.0"]
 
 
 def _make_generic_export(tmp_path):

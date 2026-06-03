@@ -7,6 +7,7 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 
 DEFAULT_TRACK1_SEARCH_TERMS = [
     "track1.txt",
+    "track1_schema",
     "Track 1",
     "track 1",
     "submission",
@@ -185,7 +186,7 @@ def _looks_like_confirmed_schema_line(line_text: str) -> bool:
     ]
     if any(term in lower for term in negative_terms):
         return False
-    schema_terms = ["columns", "delimiter", "required column", "format:", "frame indexing", "id scope"]
+    schema_terms = ["schema", "columns", "delimiter", "required column", "format:", "frame indexing", "id scope"]
     official_terms = ["track1", "track 1", "submission", "official"]
     return any(term in lower for term in schema_terms) and any(term in lower for term in official_terms)
 

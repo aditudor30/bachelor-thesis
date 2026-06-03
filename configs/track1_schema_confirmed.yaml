@@ -1,0 +1,20 @@
+track1_schema:
+  schema_confirmed: true
+  source: "user_supplied_official_evaluation_server_format"
+  columns:
+    - "scene_id"
+    - "class_id"
+    - "object_id"
+    - "frame_id"
+    - "x"
+    - "y"
+    - "z"
+    - "width"
+    - "length"
+    - "height"
+    - "yaw"
+  has_header: false
+  delimiter: " "
+  frame_indexing: "unknown"
+  id_scope: "global"
+  notes: "Official format supplied by user: scene_id class_id object_id frame_id x y z width length height yaw. Current writer keeps frame_id unchanged from generic export and uses global_track_id as object_id."

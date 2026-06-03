@@ -1,6 +1,7 @@
 """Writer scaffold for official Track 1 exports."""
 
 import csv
+import re
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -43,12 +44,15 @@ def export_track1_from_generic(
     missing_columns = [column for column in schema.columns if not mapping.get(column)]
     if missing_columns:
         raise ValueError("Cannot create official Track 1 export; missing columns: %s" % ",".join(missing_columns))
-    rows_written = _write_confirmed_track1(rows, requested_output, schema, mapping, show_progress=show_progress)
+    output_rows = _collapse_rows_for_official_track1(rows, schema, mapping)
+    rows_written = _write_confirmed_track1(output_rows, requested_output, schema, mapping, show_progress=show_progress)
     return {
         "official_export_created": True,
         "reason": "",
         "output_path": str(requested_output),
         "rows_written": rows_written,
+        "input_rows": len(rows),
+        "duplicate_rows_collapsed": max(0, len(rows) - rows_written),
         "scenes": selected_scenes,
         "subsets": selected_subsets,
         "schema_confirmed": True,
@@ -146,10 +150,53 @@ def _write_confirmed_track1(
     return count
 
 
+def _collapse_rows_for_official_track1(
+    rows: List[Dict[str, Any]],
+    schema: Track1ExportSchema,
+    mapping: Dict[str, str],
+) -> List[Dict[str, Any]]:
+    """Collapse camera-level duplicates for the no-camera Track 1 format.
+
+    If multiple camera observations map to the same
+    (scene_id, class_id, object_id, frame_id), keep the highest-confidence
+    observation. This avoids duplicate object-frame records in the official
+    3D output while leaving future fusion/ReID upgrades as TODO work.
+    """
+    required = ["scene_id", "class_id", "object_id", "frame_id"]
+    if not all(column in schema.columns for column in required):
+        return rows
+    grouped = {}
+    fallback_rows = []
+    for row in rows:
+        key = tuple([_mapped_value(row, column, mapping.get(column, ""), schema) for column in required])
+        if any(value in (None, "") for value in key):
+            fallback_rows.append(row)
+            continue
+        previous = grouped.get(key)
+        if previous is None or _confidence(row) > _confidence(previous):
+            grouped[key] = row
+    collapsed = list(grouped.values()) + fallback_rows
+    return sorted(
+        collapsed,
+        key=lambda item: (
+            _safe_int(_mapped_value(item, "scene_id", mapping.get("scene_id", ""), schema)),
+            _safe_int(_mapped_value(item, "frame_id", mapping.get("frame_id", ""), schema)),
+            _safe_int(_mapped_value(item, "object_id", mapping.get("object_id", ""), schema)),
+            _safe_int(_mapped_value(item, "class_id", mapping.get("class_id", ""), schema)),
+        ),
+    )
+
+
 def _mapped_value(row: Dict[str, Any], official_column: str, generic_column: str, schema: Track1ExportSchema) -> Any:
     value = row.get(generic_column, "")
-    if schema.frame_indexing == "one_based" and generic_column == "frame_id":
+    if official_column == "scene_id":
+        return _scene_name_to_id(value)
+    if official_column == "object_id":
+        return _safe_int(value)
+    if schema.frame_indexing == "one_based" and official_column == "frame_id":
         return _safe_int(value) + 1
+    if official_column in set(["class_id", "frame_id"]):
+        return _safe_int(value)
     return value
 
 
@@ -162,6 +209,20 @@ def _safe_int(value: Any) -> int:
         return int(float(value))
     except (TypeError, ValueError):
         return -1
+
+
+def _scene_name_to_id(value: Any) -> Any:
+    regex_result = re.search(r"(\d+)$", str(value))
+    if regex_result is None:
+        return ""
+    return int(regex_result.group(1))
+
+
+def _confidence(row: Dict[str, Any]) -> float:
+    try:
+        return float(row.get("confidence", 0.0))
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _progress_iter(values: List[Any], show_progress: bool, desc: str, unit: str) -> Iterable[Any]:

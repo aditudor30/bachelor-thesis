@@ -125,7 +125,9 @@ def _validate_named_row(
                 errors.append("row_%d_frame_not_one_based:%s" % (row_index, column))
             elif schema.frame_indexing == "zero_based" and frame < 0:
                 errors.append("row_%d_frame_negative:%s" % (row_index, column))
-        if lower in ("track_id", "global_track_id", "id"):
+            elif schema.frame_indexing not in ("one_based", "zero_based") and frame < 0:
+                errors.append("row_%d_frame_negative:%s" % (row_index, column))
+        if lower in ("track_id", "global_track_id", "object_id", "id"):
             track_id = _optional_float(value)
             if track_id is None or track_id < 0:
                 errors.append("row_%d_invalid_track_id:%s" % (row_index, column))
@@ -136,12 +138,15 @@ def _looks_numeric_column(lower_name: str) -> bool:
         [
             "frame",
             "frame_id",
+            "scene_id",
+            "object_id",
             "track_id",
             "global_track_id",
             "class_id",
             "confidence",
             "x",
             "y",
+            "z",
             "x1",
             "y1",
             "x2",
@@ -151,6 +156,9 @@ def _looks_numeric_column(lower_name: str) -> bool:
             "center_x",
             "center_y",
             "center_z",
+            "width",
+            "length",
+            "height",
             "width_3d",
             "length_3d",
             "height_3d",
@@ -170,6 +178,9 @@ def _optional_float(value: Any) -> Any:
 
 
 def _duplicate_key(row: Dict[str, Any]) -> Any:
+    official_keys = ["scene_id", "class_id", "object_id", "frame_id"]
+    if all(key in row for key in official_keys):
+        return tuple(row[key] for key in official_keys)
     keys = ["scene_name", "camera_id", "frame_id", "global_track_id"]
     if all(key in row for key in keys):
         return tuple(row[key] for key in keys)

@@ -31,6 +31,17 @@ GENERIC_TRACKING_COLUMNS = [
     "yaw",
 ]
 
+TRACK1_GENERIC_ALIASES = {
+    "scene_id": "scene_name",
+    "object_id": "global_track_id",
+    "x": "center_x",
+    "y": "center_y",
+    "z": "center_z",
+    "width": "width_3d",
+    "length": "length_3d",
+    "height": "height_3d",
+}
+
 
 def load_generic_tracking_csv(path: Union[str, Path]) -> List[Dict[str, Any]]:
     """Load one generic tracking CSV as dictionaries."""
@@ -70,7 +81,12 @@ def build_track1_mapping(schema: Track1ExportSchema, generic_columns: List[str])
     generic_set = set(generic_columns)
     mapping = {}
     for column in schema.columns:
-        mapping[column] = column if column in generic_set else ""
+        if column in generic_set:
+            mapping[column] = column
+        elif column in TRACK1_GENERIC_ALIASES and TRACK1_GENERIC_ALIASES[column] in generic_set:
+            mapping[column] = TRACK1_GENERIC_ALIASES[column]
+        else:
+            mapping[column] = ""
     return mapping
 
 
