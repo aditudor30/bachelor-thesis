@@ -1,0 +1,5 @@
+include_config: "deep_oc_sort_3d/configs/step15g_fullcam_pseudo3d.yaml"
+
+notes:
+  - "Named entry point for Step 15G full-camera pseudo3D stabilization."
+  - "The canonical settings live in step15g_fullcam_pseudo3d.yaml."
