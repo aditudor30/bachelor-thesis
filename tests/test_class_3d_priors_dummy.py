@@ -1,3 +1,5 @@
+import pytest
+
 from deep_oc_sort_3d.audit3d.class_3d_priors import (
     class_priors_to_rows,
     compare_class_priors_between_subsets,
@@ -19,8 +21,8 @@ def test_class_3d_priors_compute_stats_and_constant_flag():
 
     assert priors["classes"]["0"]["dimensions"]["width"]["median"] == 3.0
     assert priors["classes"]["0"]["dimensions"]["width"]["mean"] == 3.0
-    assert priors["classes"]["0"]["dimensions"]["width"]["p05"] == 1.2
-    assert priors["classes"]["0"]["dimensions"]["width"]["p95"] == 4.8
+    assert priors["classes"]["0"]["dimensions"]["width"]["p05"] == pytest.approx(1.2)
+    assert priors["classes"]["0"]["dimensions"]["width"]["p95"] == pytest.approx(4.8)
     assert priors["classes"]["1"]["looks_constant_or_default"]
     assert len(csv_rows) == 2
 
@@ -36,4 +38,3 @@ def test_class_3d_priors_compare_subsets():
     comparison = compare_class_priors_between_subsets(priors_a, priors_b)
 
     assert comparison["rows"][0]["width_median_delta"] == 1.0
-
