@@ -35,6 +35,13 @@ class GlobalAssociationEdge:
     affinity: float
     accepted: bool
     reject_reason: str
+    geometry_cost: Optional[float] = None
+    appearance_distance: Optional[float] = None
+    cosine_similarity: Optional[float] = None
+    appearance_weight: Optional[float] = None
+    used_reid: bool = False
+    reid_missing_reason: str = ""
+    total_cost: Optional[float] = None
 
 
 @dataclass
@@ -94,6 +101,13 @@ def edge_to_dict(edge: GlobalAssociationEdge) -> Dict[str, Any]:
         "affinity": edge.affinity,
         "accepted": edge.accepted,
         "reject_reason": edge.reject_reason,
+        "geometry_cost": edge.geometry_cost,
+        "appearance_distance": edge.appearance_distance,
+        "cosine_similarity": edge.cosine_similarity,
+        "appearance_weight": edge.appearance_weight,
+        "used_reid": edge.used_reid,
+        "reid_missing_reason": edge.reid_missing_reason,
+        "total_cost": edge.total_cost,
     }
 
 
@@ -125,6 +139,13 @@ def edge_from_dict(data: Dict[str, Any]) -> GlobalAssociationEdge:
         affinity=float(data.get("affinity", 0.0)),
         accepted=_optional_bool(data.get("accepted", False)),
         reject_reason=str(data.get("reject_reason", "")),
+        geometry_cost=_optional_float(data.get("geometry_cost")),
+        appearance_distance=_optional_float(data.get("appearance_distance")),
+        cosine_similarity=_optional_float(data.get("cosine_similarity")),
+        appearance_weight=_optional_float(data.get("appearance_weight")),
+        used_reid=_optional_bool(data.get("used_reid", False)),
+        reid_missing_reason=str(data.get("reid_missing_reason", "")),
+        total_cost=_optional_float(data.get("total_cost")),
     )
 
 

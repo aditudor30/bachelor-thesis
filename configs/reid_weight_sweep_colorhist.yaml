@@ -1,0 +1,14 @@
+sweep:
+  candidates_root: "output/mtmc_candidates_motion_clean/yolo11m_medium_conf001_mid_dense"
+  reid_root: "output/reid_embeddings/yolo11m_medium_conf001_colorhist"
+  output_root: "output/global_mtmc_reid/sweeps/colorhist"
+  base_config: "deep_oc_sort_3d/configs/global_mtmc_reid_w010.yaml"
+  weights:
+    - 0.05
+    - 0.10
+    - 0.20
+  subsets:
+    - "official_val"
+    - "internal_holdout"
+    - "test"
+  progress: true

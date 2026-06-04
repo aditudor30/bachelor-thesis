@@ -70,6 +70,13 @@ EDGE_CSV_FIELDS = [
     "affinity",
     "accepted",
     "reject_reason",
+    "geometry_cost",
+    "appearance_distance",
+    "cosine_similarity",
+    "appearance_weight",
+    "used_reid",
+    "reid_missing_reason",
+    "total_cost",
 ]
 
 
