@@ -1,0 +1,66 @@
+experiment:
+  name: "baseline_v2_pseudo3d_6cam"
+  output_root: "output/baseline_v2_pseudo3d_6cam_comparison"
+  progress: true
+
+paths:
+  dataset_root: "dataset/MTMC_Tracking_2026"
+  pseudo3d_predictions_root: "output/pseudo3d/baseline_v2_pseudo3d_stabilized/predictions_stabilized"
+  class_priors: "output/3d_priors/baseline_v1_geometry_only/priors/class_dimension_priors_final.json"
+
+  v1_pipeline_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+  v1_local_tracks_root: "output/local_tracks/yolo11m_medium_conf001"
+  v1_tracklets_root: "output/tracklets/yolo11m_medium_conf001_mid"
+  v1_candidates_root: "output/mtmc_candidates/yolo11m_medium_conf001_mid_dense"
+  v1_motion_clean_root: "output/mtmc_candidates_motion_clean/yolo11m_medium_conf001_mid_dense"
+  v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+
+  v2_full_pipeline_root: "output/pipeline_runs/baseline_v2_pseudo3d"
+  v2_full_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d"
+  v2_full_tracklets_root: "output/tracklets/baseline_v2_pseudo3d"
+  v2_full_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d"
+  v2_full_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d"
+  v2_full_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d"
+  v2_full_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d"
+
+  v2_6cam_pipeline_root: "output/pipeline_runs/baseline_v2_pseudo3d_6cam"
+  v2_6cam_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_6cam"
+  v2_6cam_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_6cam"
+  v2_6cam_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_6cam"
+  v2_6cam_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_6cam"
+  v2_6cam_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_6cam"
+  v2_6cam_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_6cam"
+  v2_6cam_track1_root: "output/track1_submission/baseline_v2_pseudo3d_6cam"
+
+sixcam_subset:
+  - subset: "official_val"
+    split: "val"
+    scene_name: "Warehouse_020"
+    camera_id: "Camera_0000"
+  - subset: "official_val"
+    split: "val"
+    scene_name: "Warehouse_021"
+    camera_id: "Camera_0000"
+  - subset: "official_val"
+    split: "val"
+    scene_name: "Warehouse_022"
+    camera_id: "Camera_0000"
+  - subset: "internal_holdout"
+    split: "train"
+    scene_name: "Warehouse_014"
+    camera_id: "Camera_0000"
+  - subset: "internal_holdout"
+    split: "train"
+    scene_name: "Warehouse_015"
+    camera_id: "Camera_0000"
+  - subset: "internal_holdout"
+    split: "train"
+    scene_name: "Warehouse_016"
+    camera_id: "Camera_0000"
+
+criteria:
+  min_pseudo3d_used_rate: 0.94
+  require_track1_validation_errors_zero: true
+  compare_strict_frame_intersection: true
+

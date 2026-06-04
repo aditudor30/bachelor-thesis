@@ -1,0 +1,6 @@
+include_config: "deep_oc_sort_3d/configs/baseline_v2_pseudo3d_6cam.yaml"
+
+notes:
+  - "Use baseline_v2_pseudo3d_6cam.yaml as the canonical 6cam config."
+  - "This file is kept as a named entry point for read-only V1 metric collection."
+
