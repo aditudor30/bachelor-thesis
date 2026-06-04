@@ -78,8 +78,8 @@ def _write_metric_bundle(metrics: Dict[str, Any], root: Path) -> None:
 
 def _per_camera_rows(v1: Dict[str, Any], v2: Dict[str, Any]) -> List[Dict[str, Any]]:
     out = []
-    v1_rows = _rows_by_camera(v1.get("observations", {}).get("rows", []))
-    v2_rows = _rows_by_camera(v2.get("observations", {}).get("rows", []))
+    v1_rows = _rows_by_camera(_section_detail_rows(v1, "observations"))
+    v2_rows = _rows_by_camera(_section_detail_rows(v2, "observations"))
     for key in sorted(set(list(v1_rows.keys()) + list(v2_rows.keys()))):
         a = v1_rows.get(key, {})
         b = v2_rows.get(key, {})
@@ -100,8 +100,8 @@ def _per_scene_rows(v1: Dict[str, Any], v2: Dict[str, Any]) -> List[Dict[str, An
 
 
 def _per_class_rows(v1: Dict[str, Any], v2: Dict[str, Any]) -> List[Dict[str, Any]]:
-    v1_counts = _merge_class_counts(v1.get("final_export", {}).get("rows", []))
-    v2_counts = _merge_class_counts(v2.get("final_export", {}).get("rows", []))
+    v1_counts = _merge_class_counts(_section_detail_rows(v1, "final_export"))
+    v2_counts = _merge_class_counts(_section_detail_rows(v2, "final_export"))
     rows = []
     for key in sorted(set(list(v1_counts.keys()) + list(v2_counts.keys()))):
         rows.append({"class_id": key, "v1_rows": v1_counts.get(key, 0), "v2_rows": v2_counts.get(key, 0), "delta": v2_counts.get(key, 0) - v1_counts.get(key, 0)})
@@ -110,7 +110,11 @@ def _per_class_rows(v1: Dict[str, Any], v2: Dict[str, Any]) -> List[Dict[str, An
 
 def _rows_by_camera(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     out = {}
+    if not isinstance(rows, list):
+        return out
     for row in rows:
+        if not isinstance(row, dict):
+            continue
         key = "%s/%s/%s" % (row.get("subset"), row.get("scene_name"), row.get("camera_id"))
         out[key] = row
     return out
@@ -118,7 +122,11 @@ def _rows_by_camera(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
 
 def _merge_class_counts(rows: List[Dict[str, Any]]) -> Dict[str, int]:
     counts = {}
+    if not isinstance(rows, list):
+        return counts
     for row in rows:
+        if not isinstance(row, dict):
+            continue
         data = row.get("class_distribution", {})
         if not isinstance(data, dict):
             continue
@@ -138,19 +146,30 @@ def _pseudo3d_coverage(v2: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _source_metadata(v2: Dict[str, Any]) -> Dict[str, Any]:
-    rows = v2.get("observations", {}).get("rows", [])
+    rows = _section_detail_rows(v2, "observations")
     return {"per_camera": [{"camera": "%s/%s/%s" % (row.get("subset"), row.get("scene_name"), row.get("camera_id")), "metadata_completeness": row.get("metadata_completeness")} for row in rows]}
 
 
 def _fallback_usage_rows(v2: Dict[str, Any]) -> List[Dict[str, Any]]:
     rows = []
-    for row in v2.get("observations", {}).get("rows", []):
+    for row in _section_detail_rows(v2, "observations"):
         rows.append({"subset": row.get("subset"), "scene_name": row.get("scene_name"), "camera_id": row.get("camera_id"), "pseudo3d_used_rate": row.get("pseudo3d_used_rate"), "fallback_original_used_rate": row.get("fallback_original_used_rate")})
     return rows
 
 
 def _summary_rows(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
     return [{"metric": key, "value": value} for key, value in sorted(summary.get("deltas", {}).items())]
+
+
+def _section_detail_rows(metrics: Dict[str, Any], section: str) -> List[Dict[str, Any]]:
+    data = metrics.get(section, {})
+    if not isinstance(data, dict):
+        return []
+    rows = data.get("rows", [])
+    if isinstance(rows, list):
+        return rows
+    rows = data.get("detail_rows", [])
+    return rows if isinstance(rows, list) else []
 
 
 def _write_safe_csv(rows: List[Dict[str, Any]], path: Path) -> None:

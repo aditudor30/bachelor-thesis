@@ -205,7 +205,14 @@ def _final_export_row(item: SixCamItem, path: Path, records: List[Dict[str, Any]
 
 
 def _summary(section: str, version_name: str, rows: List[Dict[str, Any]], sum_fields: List[str]) -> Dict[str, Any]:
-    summary = {"section": section, "version_name": version_name, "camera_count": len(rows), "missing_files": sum(1 for row in rows if row.get("status") == "missing"), "rows": rows}
+    summary = {
+        "section": section,
+        "version_name": version_name,
+        "camera_count": len(rows),
+        "missing_files": sum(1 for row in rows if row.get("status") == "missing"),
+        "rows": rows,
+        "detail_rows": rows,
+    }
     for field in sum_fields:
         summary[field] = sum(_safe_int(row.get(field, 0)) for row in rows)
     if summary.get("num_observations") is not None:
@@ -282,7 +289,9 @@ def _count(rows: List[Dict[str, Any]], field: str) -> Dict[str, int]:
 
 
 def _count_key(value: Any) -> str:
-    if value in (None, ""):
+    if value is None:
+        return "unknown"
+    if isinstance(value, str) and value == "":
         return "unknown"
     if isinstance(value, (list, dict, tuple)):
         try:

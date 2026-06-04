@@ -62,6 +62,9 @@ def _write_metric_bundle(metrics: Dict[str, Any], root: Path) -> None:
 
 def _rows(section: Dict[str, Any]) -> Any:
     rows = section.get("rows", [])
+    if isinstance(rows, list):
+        return rows
+    rows = section.get("detail_rows", [])
     return rows if isinstance(rows, list) else []
 
 
