@@ -1,0 +1,52 @@
+step15b:
+  name: "class_priors_and_pseudo3d_design"
+  output_root: "output/3d_priors/baseline_v1_geometry_only"
+  progress: true
+
+paths:
+  audit_root: "output/3d_audit/baseline_v1_geometry_only"
+  class_priors_input_json: "output/3d_audit/baseline_v1_geometry_only/class_priors/class_dimension_priors.json"
+  class_priors_input_csv: "output/3d_audit/baseline_v1_geometry_only/class_priors/class_dimension_priors.csv"
+  generic_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/generic_tracking_export"
+  track1_path: "output/track1_submission/yolo11m_medium_conf001_transition/track1.txt"
+
+classes:
+  - class_id: 0
+    class_name: "Person"
+  - class_id: 1
+    class_name: "Forklift"
+  - class_id: 2
+    class_name: "PalletTruck"
+  - class_id: 3
+    class_name: "Transporter"
+  - class_id: 4
+    class_name: "FourierGR1T2"
+  - class_id: 5
+    class_name: "AgilityDigit"
+  - class_id: 6
+    class_name: "NovaCarter"
+
+priors:
+  robust_method: "median"
+  min_count_high_confidence: 1000
+  min_count_medium_confidence: 100
+  use_p05_p95_clamps: true
+  detect_constant_dimensions: true
+  constant_cv_threshold: 0.02
+
+comparison:
+  compare_subsets:
+    - "official_val"
+    - "internal_holdout"
+    - "test"
+  dimension_ratio_warning_low: 0.5
+  dimension_ratio_warning_high: 2.0
+
+pseudo3d_design:
+  primary_method: "bbox_height_depth"
+  fallback_methods:
+    - "bottom_center_ground_approx"
+    - "class_default"
+  write_config: true
+  write_api_skeleton: true
+

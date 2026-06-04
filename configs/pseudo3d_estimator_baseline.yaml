@@ -1,0 +1,57 @@
+pseudo3d:
+  name: "baseline_v2_pseudo3d"
+  version: "0.1"
+  enabled: false
+
+paths:
+  class_priors: "output/3d_priors/baseline_v1_geometry_only/priors/class_dimension_priors_final.json"
+
+method:
+  primary: "bbox_height_depth"
+  fallback_order:
+    - "bbox_height_depth"
+    - "bottom_center_ground_approx"
+    - "class_default"
+
+bbox_height_depth:
+  use_bbox_height: true
+  min_bbox_height_px: 8
+  max_depth_m: 100.0
+  min_depth_m: 0.1
+  use_bottom_center_for_ray: true
+
+ground_approx:
+  enabled: false
+  require_ground_plane: true
+
+dimensions:
+  source: "class_priors"
+  use_median: true
+  clamp_to_p05_p95: true
+
+yaw:
+  primary: "motion_direction"
+  fallback: "class_default"
+  min_track_displacement_for_yaw: 0.5
+
+smoothing:
+  enabled: true
+  method: "median_filter"
+  window: 5
+  max_step_m: 6.0
+
+metadata:
+  write_source_fields: true
+  mark_gt_derived: false
+  mark_estimated_for_test: true
+
+validation:
+  evaluate_on_val_as_test: true
+  metrics:
+    - "center_error"
+    - "depth_error"
+    - "dimension_error"
+    - "yaw_error"
+    - "projection_success_rate"
+    - "smoothness"
+
