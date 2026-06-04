@@ -145,6 +145,11 @@ def _projection_success_rate(records: List[Pseudo3DEvalRecord]) -> Optional[floa
     values = [record.projection_valid for record in records if record.projection_valid is not None]
     if not values:
         return None
+    if not any(values):
+        # Raw prediction files usually leave projection_valid unset for successes
+        # and only carry False on extraction failures. Projection quality is
+        # measured by check_pseudo3d_projection.py, so avoid a misleading 0.0.
+        return None
     return float(sum(1 for value in values if value)) / float(len(values))
 
 
@@ -163,4 +168,3 @@ def _optional_bool(value: Any) -> Optional[bool]:
     if isinstance(value, bool):
         return value
     return str(value).lower() in ("true", "1", "yes")
-
