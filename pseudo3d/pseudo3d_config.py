@@ -19,8 +19,8 @@ def validate_pseudo3d_config(config: Dict[str, Any]) -> Dict[str, Any]:
     pseudo3d = config.get("pseudo3d", {})
     method = config.get("method", {})
     metadata = config.get("metadata", {})
-    if pseudo3d.get("enabled") is not False:
-        errors.append("pseudo3d.enabled_must_be_false_for_step15b")
+    if not isinstance(pseudo3d.get("enabled"), bool):
+        errors.append("pseudo3d.enabled_must_be_boolean")
     if not method.get("primary"):
         errors.append("method.primary_missing")
     if not method.get("fallback_order"):
@@ -39,4 +39,3 @@ def pseudo3d_config_summary(config: Dict[str, Any]) -> Dict[str, Any]:
         "primary_method": config.get("method", {}).get("primary"),
         "fallback_order": config.get("method", {}).get("fallback_order", []),
     }
-
