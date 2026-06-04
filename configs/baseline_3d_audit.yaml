@@ -1,0 +1,53 @@
+audit3d:
+  name: "baseline_v1_geometry_only_3d_audit"
+  output_root: "output/3d_audit/baseline_v1_geometry_only"
+  progress: true
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  track1_path: "output/track1_submission/yolo11m_medium_conf001_transition/track1.txt"
+  generic_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/generic_tracking_export"
+  frame_records_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/frame_global_records"
+  observations_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001/observations3d"
+  candidates_root: "output/mtmc_candidates_motion_clean/yolo11m_medium_conf001_mid_dense"
+
+subsets:
+  official_val:
+    split: "val"
+    scenes:
+      - "Warehouse_020"
+      - "Warehouse_021"
+      - "Warehouse_022"
+  internal_holdout:
+    split: "train"
+    scenes:
+      - "Warehouse_014"
+      - "Warehouse_015"
+      - "Warehouse_016"
+  test:
+    split: "test"
+    scenes:
+      - "Warehouse_023"
+      - "Warehouse_024"
+      - "Warehouse_025"
+
+thresholds:
+  coordinate_abs_max: 10000.0
+  dimension_max: 20.0
+  suspicious_step_m: 3.0
+  invalid_step_m: 6.0
+  suspicious_dimension_cv: 0.25
+  invalid_dimension_cv: 0.50
+  yaw_jump_threshold: 1.57
+
+projection_audit:
+  enabled: true
+  max_records_per_camera: 200
+  save_examples: false
+  example_count: 20
+
+class_priors:
+  use_subsets:
+    - "official_val"
+    - "internal_holdout"
+
