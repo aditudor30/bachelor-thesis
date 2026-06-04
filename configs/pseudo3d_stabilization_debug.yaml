@@ -1,0 +1,46 @@
+progress: true
+
+pseudo3d_stabilization:
+  name: "baseline_v2_pseudo3d_stabilization_debug"
+  version: "0.2_stabilized"
+  output_root: "output/pseudo3d/baseline_v2_pseudo3d_stabilized"
+
+  grouping:
+    primary_key: "local_track_id"
+    fallback_key: "global_track_id"
+    singleton_if_no_track: true
+
+  depth_smoothing:
+    enabled: true
+    method: "median_filter"
+    window: 5
+    max_relative_change: 0.5
+    interpolate_missing: false
+
+  center_smoothing:
+    enabled: true
+    method: "median_filter"
+    window: 5
+    alpha: 0.3
+    interpolate_missing: false
+
+  jump_guard:
+    enabled: true
+    max_step_m: 6.0
+    strategy: "hold_previous"
+    reduce_confidence_factor: 0.5
+
+  small_bbox_guard:
+    enabled: true
+    min_bbox_height_px: 12
+    use_previous_depth_if_available: true
+    reduce_confidence_factor: 0.5
+
+  yaw:
+    recompute_from_smoothed_motion: true
+    min_displacement: 0.5
+    default_yaw: 0.0
+
+  metadata:
+    update_source_fields: true
+    pseudo3d_version: "0.2_stabilized"

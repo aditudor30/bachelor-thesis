@@ -1,0 +1,9 @@
+progress: true
+
+pseudo3d_stabilization:
+  input_root: "output/pseudo3d/baseline_v2_pseudo3d_isolated/predictions"
+  output_root: "output/pseudo3d/baseline_v2_pseudo3d_stabilized"
+  config: "deep_oc_sort_3d/configs/pseudo3d_stabilization_debug.yaml"
+  subsets:
+    - "official_val"
+    - "internal_holdout"
