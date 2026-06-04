@@ -1,0 +1,46 @@
+progress: true
+
+baseline_v2:
+  name: "baseline_v2_pseudo3d"
+  output_root: "output/pipeline_runs/baseline_v2_pseudo3d"
+
+paths:
+  dataset_root: "dataset/MTMC_Tracking_2026"
+  baseline_v1_pipeline_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+  input_observations_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001/observations3d"
+  pseudo3d_predictions_root: "output/pseudo3d/baseline_v2_pseudo3d_stabilized/predictions_stabilized"
+  output_observations_root: "output/pipeline_runs/baseline_v2_pseudo3d/observations3d"
+  output_metadata_root: "output/pipeline_runs/baseline_v2_pseudo3d/observations3d_metadata"
+  class_priors: "output/3d_priors/baseline_v1_geometry_only/priors/class_dimension_priors_final.json"
+
+pseudo3d_integration:
+  use_stabilized_pseudo3d: true
+  prefer_pseudo3d_over_original: true
+  fallback_to_original_3d_if_missing: true
+  fallback_to_class_prior_dimensions: true
+  drop_if_no_center_3d: false
+  require_world_coordinates: true
+  write_source_metadata: true
+  bbox_iou_fallback_enabled: true
+  bbox_iou_fallback_threshold: 0.8
+
+subsets:
+  official_val:
+    split: "val"
+    scenes:
+      - "Warehouse_020"
+      - "Warehouse_021"
+      - "Warehouse_022"
+  internal_holdout:
+    split: "train"
+    scenes:
+      - "Warehouse_014"
+      - "Warehouse_015"
+      - "Warehouse_016"
+  test:
+    split: "test"
+    scenes:
+      - "Warehouse_023"
+      - "Warehouse_024"
+      - "Warehouse_025"
+

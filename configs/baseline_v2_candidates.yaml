@@ -1,0 +1,21 @@
+candidates:
+  tracklet_root: "output/tracklets/baseline_v2_pseudo3d"
+  output_root: "output/mtmc_candidates/baseline_v2_pseudo3d"
+  subsets:
+    - "official_val"
+    - "internal_holdout"
+    - "test"
+  scenes: null
+  camera_ids: null
+  min_length: 3
+  min_mean_confidence: 0.01
+  allowed_quality_flags:
+    - "good"
+    - "fragmented"
+  require_valid_for_mtmc: true
+  require_3d: false
+  trajectory_sample_rate: 1
+  max_trajectory_points: 200
+  export_rejected: false
+  progress: true
+

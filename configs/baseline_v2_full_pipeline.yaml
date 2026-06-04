@@ -1,0 +1,41 @@
+baseline_v2_pipeline:
+  name: "baseline_v2_pseudo3d"
+  runbook_output_root: "output/pipeline_runs/baseline_v2_pseudo3d/summaries"
+
+  observations_config: "deep_oc_sort_3d/configs/baseline_v2_pseudo3d_observations.yaml"
+  local_tracking_config: "deep_oc_sort_3d/configs/baseline_v2_local_tracking.yaml"
+  tracklets_config: "deep_oc_sort_3d/configs/baseline_v2_tracklets.yaml"
+  candidates_config: "deep_oc_sort_3d/configs/baseline_v2_candidates.yaml"
+  motion_filtering_config: "deep_oc_sort_3d/configs/baseline_v2_motion_filtering.yaml"
+  global_association_config: "deep_oc_sort_3d/configs/baseline_v2_global_association.yaml"
+  final_export_config: "deep_oc_sort_3d/configs/baseline_v2_final_export.yaml"
+  track1_export_config: "deep_oc_sort_3d/configs/baseline_v2_final_export.yaml"
+  comparison_config: "deep_oc_sort_3d/configs/baseline_v2_full_pipeline.yaml"
+
+  stages:
+    - "observations"
+    - "local_tracking"
+    - "tracklets"
+    - "candidates"
+    - "motion_filtering"
+    - "global_association"
+    - "final_export"
+    - "track1_export"
+
+  track1_validation:
+    submission: "output/track1_submission/baseline_v2_pseudo3d/track1.txt"
+    schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+    output: "output/track1_submission/baseline_v2_pseudo3d/track1_validation.json"
+
+comparison:
+  output_root: "output/baseline_v2_pseudo3d_comparison"
+  baseline_v1:
+    global_mtmc_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+    final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+    track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+  baseline_v2:
+    global_mtmc_root: "output/global_mtmc_transition/baseline_v2_pseudo3d"
+    final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d"
+    track1_root: "output/track1_submission/baseline_v2_pseudo3d"
+    observations_summary: "output/pipeline_runs/baseline_v2_pseudo3d/summaries/pseudo3d_observation_summary.json"
+

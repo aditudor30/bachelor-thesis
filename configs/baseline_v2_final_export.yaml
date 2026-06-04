@@ -1,0 +1,47 @@
+final_export:
+  root: "dataset/MTMC_Tracking_2026"
+  local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d"
+  global_mtmc_root: "output/global_mtmc_transition/baseline_v2_pseudo3d"
+  output_root: "output/final_mvp_exports/baseline_v2_pseudo3d"
+  include_unassigned: true
+  namespace_global_ids: true
+  global_id_stride: 100000
+  drop_invalid_bbox: true
+  drop_unassigned_for_generic_export: true
+  drop_invalid_bbox_for_generic_export: true
+  progress: true
+
+  subsets:
+    official_val:
+      split: "val"
+      scenes:
+        - "Warehouse_020"
+        - "Warehouse_021"
+        - "Warehouse_022"
+    internal_holdout:
+      split: "train"
+      scenes:
+        - "Warehouse_014"
+        - "Warehouse_015"
+        - "Warehouse_016"
+    test:
+      split: "test"
+      scenes:
+        - "Warehouse_023"
+        - "Warehouse_024"
+        - "Warehouse_025"
+
+track1_export:
+  generic_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d/generic_tracking_export/test"
+  output_root: "output/track1_submission/baseline_v2_pseudo3d"
+  schema_confirmed: true
+  schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  force_unconfirmed_preview: false
+  subsets:
+    - "test"
+  scenes:
+    - "Warehouse_023"
+    - "Warehouse_024"
+    - "Warehouse_025"
+  progress: true
+

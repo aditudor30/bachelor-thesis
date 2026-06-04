@@ -1,0 +1,14 @@
+motion_filtering:
+  candidate_root: "output/mtmc_candidates/baseline_v2_pseudo3d"
+  output_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d"
+  motion_quality_config: "deep_oc_sort_3d/configs/mtmc_motion_quality_medium_conf001.yaml"
+  subsets:
+    - "official_val"
+    - "internal_holdout"
+    - "test"
+  scenes: null
+  camera_ids: null
+  require_3d_motion: true
+  allow_suspicious_as_clean: false
+  progress: true
+
