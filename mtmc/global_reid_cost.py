@@ -67,6 +67,17 @@ def attach_reid_cost_to_edge(
     require_embeddings = bool(config.get("require_embeddings_for_edge", False))
     fallback = bool(config.get("geometry_only_fallback", True)) and not require_embeddings
     geometry_cost = float(edge.geometry_cost) if edge.geometry_cost is not None else float(edge.cost)
+    if not use_reid:
+        edge.geometry_cost = geometry_cost
+        edge.appearance_distance = None
+        edge.cosine_similarity = None
+        edge.appearance_weight = appearance_weight
+        edge.used_reid = False
+        edge.reid_missing_reason = "reid_disabled"
+        edge.total_cost = geometry_cost
+        edge.cost = geometry_cost
+        edge.affinity = 1.0 / (1.0 + float(geometry_cost))
+        return edge
     result_a = embedding_lookup.get_embedding(candidate_a) if embedding_lookup is not None else None
     result_b = embedding_lookup.get_embedding(candidate_b) if embedding_lookup is not None else None
     emb_a = result_a.embedding if result_a is not None and result_a.found else None
