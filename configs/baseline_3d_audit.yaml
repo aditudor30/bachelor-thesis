@@ -4,7 +4,7 @@ audit3d:
   progress: true
 
 paths:
-  dataset_root: "/path/to/MTMC_Tracking_2026"
+  dataset_root: "dataset/MTMC_Tracking_2026"
   track1_path: "output/track1_submission/yolo11m_medium_conf001_transition/track1.txt"
   generic_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/generic_tracking_export"
   frame_records_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition/frame_global_records"
@@ -50,4 +50,3 @@ class_priors:
   use_subsets:
     - "official_val"
     - "internal_holdout"
-
