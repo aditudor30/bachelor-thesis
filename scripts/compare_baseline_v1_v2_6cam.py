@@ -1,6 +1,7 @@
 """Compare baseline_v1 and baseline_v2 pseudo-3D on the 6-camera subset."""
 
 import argparse
+import json
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -25,18 +26,18 @@ def run(args: Any) -> Dict[str, Any]:
     _write_metric_bundle(v1, output_root / "v1_subset_metrics")
     _write_metric_bundle(v2, output_root / "v2_subset_metrics")
     write_json(summary, comparison_root / "v1_vs_v2_6cam_summary.json")
-    write_csv(metric_delta_rows(summary.get("deltas", {})), comparison_root / "metric_deltas.csv")
-    write_csv(_per_camera_rows(v1, v2), comparison_root / "per_camera_comparison.csv")
-    write_csv(_per_scene_rows(v1, v2), comparison_root / "per_scene_comparison.csv")
-    write_csv(_per_class_rows(v1, v2), comparison_root / "per_class_comparison.csv")
+    _write_safe_csv(metric_delta_rows(summary.get("deltas", {})), comparison_root / "metric_deltas.csv")
+    _write_safe_csv(_per_camera_rows(v1, v2), comparison_root / "per_camera_comparison.csv")
+    _write_safe_csv(_per_scene_rows(v1, v2), comparison_root / "per_scene_comparison.csv")
+    _write_safe_csv(_per_class_rows(v1, v2), comparison_root / "per_class_comparison.csv")
     write_json(summary.get("verdict", {}), comparison_root / "verdict.json")
-    write_csv(_summary_rows(summary), comparison_root / "v1_vs_v2_6cam_summary.csv")
+    _write_safe_csv(_summary_rows(summary), comparison_root / "v1_vs_v2_6cam_summary.csv")
     write_markdown(build_sixcam_report(summary, items), comparison_root / "BASELINE_V1_VS_V2_PSEUDO3D_6CAM_REPORT.md")
     write_json(_pseudo3d_coverage(v2), diagnostics_root / "pseudo3d_coverage_6cam.json")
     write_json(_source_metadata(v2), diagnostics_root / "source_metadata_completeness_6cam.json")
     write_json({"status": "not_available", "reason": "Run smoothness audit separately on 6cam exports if needed."}, diagnostics_root / "smoothness_6cam_comparison.json")
     write_json({"status": "not_available", "reason": "Projection checks are not produced by the subset metric collector."}, diagnostics_root / "projection_6cam_comparison.json")
-    write_csv(_fallback_usage_rows(v2), diagnostics_root / "fallback_usage_6cam.csv")
+    _write_safe_csv(_fallback_usage_rows(v2), diagnostics_root / "fallback_usage_6cam.csv")
     print("sixcam verdict: %s" % summary.get("verdict", {}).get("label"))
     return summary
 
@@ -150,6 +151,23 @@ def _fallback_usage_rows(v2: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def _summary_rows(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
     return [{"metric": key, "value": value} for key, value in sorted(summary.get("deltas", {}).items())]
+
+
+def _write_safe_csv(rows: List[Dict[str, Any]], path: Path) -> None:
+    write_csv([_safe_csv_row(row) for row in rows if isinstance(row, dict)], path)
+
+
+def _safe_csv_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    return {str(key): _safe_csv_value(value) for key, value in row.items()}
+
+
+def _safe_csv_value(value: Any) -> Any:
+    if isinstance(value, (dict, list, tuple)):
+        try:
+            return json.dumps(value, sort_keys=True)
+        except (TypeError, ValueError):
+            return str(value)
+    return value
 
 
 def _load_yaml(path: Path) -> Dict[str, Any]:

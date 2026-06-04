@@ -1,6 +1,7 @@
 """Collect read-only baseline_v1 metrics for the 6-camera subset."""
 
 import argparse
+import json
 from pathlib import Path
 from typing import Any, Dict
 
@@ -55,13 +56,30 @@ def _write_metric_bundle(metrics: Dict[str, Any], root: Path) -> None:
     for key, name in mapping.items():
         section = metrics.get(key, {})
         write_json(section, root / ("%s.json" % name))
-        write_csv(_rows(section), root / ("%s.csv" % name))
+        _write_safe_csv(_rows(section), root / ("%s.csv" % name))
     write_json(metrics, root / "track1_like_summary.json")
 
 
 def _rows(section: Dict[str, Any]) -> Any:
     rows = section.get("rows", [])
     return rows if isinstance(rows, list) else []
+
+
+def _write_safe_csv(rows: Any, path: Path) -> None:
+    write_csv([_safe_csv_row(row) for row in rows if isinstance(row, dict)], path)
+
+
+def _safe_csv_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    return {str(key): _safe_csv_value(value) for key, value in row.items()}
+
+
+def _safe_csv_value(value: Any) -> Any:
+    if isinstance(value, (dict, list, tuple)):
+        try:
+            return json.dumps(value, sort_keys=True)
+        except (TypeError, ValueError):
+            return str(value)
+    return value
 
 
 def _load_yaml(path: Path) -> Dict[str, Any]:

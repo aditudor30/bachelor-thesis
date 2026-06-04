@@ -276,11 +276,20 @@ def _count(rows: List[Dict[str, Any]], field: str) -> Dict[str, int]:
     counts = {}
     for row in rows:
         value = row.get(field)
-        if value in (None, ""):
-            value = "unknown"
-        key = str(value)
+        key = _count_key(value)
         counts[key] = counts.get(key, 0) + 1
     return counts
+
+
+def _count_key(value: Any) -> str:
+    if value in (None, ""):
+        return "unknown"
+    if isinstance(value, (list, dict, tuple)):
+        try:
+            return json.dumps(value, sort_keys=True)
+        except (TypeError, ValueError):
+            return str(value)
+    return str(value)
 
 
 def _lengths_by_key(rows: List[Dict[str, Any]], key_field: str) -> Dict[str, int]:
