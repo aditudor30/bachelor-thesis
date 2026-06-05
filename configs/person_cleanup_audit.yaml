@@ -1,0 +1,18 @@
+person_cleanup:
+  name: "baseline_v2_pseudo3d_fullcam_person_audit"
+  output_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+  class_id: 0
+  class_name: "Person"
+  short_rows_threshold: 3
+  low_mean_confidence_threshold: 0.03
+  max_duplicate_rows: 50000
+  duplicate_iou_threshold: 0.70
+  duplicate_center_distance_threshold: 1.0
+  progress: true
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+

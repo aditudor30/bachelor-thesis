@@ -1,0 +1,46 @@
+person_cleanup:
+  name: "baseline_v2_pseudo3d_fullcam_person_cleanup"
+  output_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+  progress: true
+  class_id: 0
+  class_name: "Person"
+  short_rows_threshold: 3
+  low_mean_confidence_threshold: 0.03
+  duplicate_iou_threshold: 0.70
+  duplicate_center_distance_threshold: 1.0
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  v2_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  v2_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+  v2_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam"
+  v2_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+  v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+  output_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+
+runs:
+  - name: "prune_short_lowconf"
+    config: "deep_oc_sort_3d/configs/person_cleanup_prune_short_lowconf.yaml"
+  - name: "prune_singletons"
+    config: "deep_oc_sort_3d/configs/person_cleanup_prune_singletons.yaml"
+  - name: "export_compact"
+    config: "deep_oc_sort_3d/configs/person_cleanup_export_compact.yaml"
+  - name: "selective_merge_safe"
+    config: "deep_oc_sort_3d/configs/person_cleanup_selective_merge_safe.yaml"
+  - name: "combined_safe"
+    config: "deep_oc_sort_3d/configs/person_cleanup_combined_safe.yaml"
+
+criteria:
+  require_track1_validation_errors_zero: true
+  require_non_person_unchanged: true
+  max_purity_drop_vs_v2_current: 0.003
+  max_false_merge_increase_vs_v2_current: 0.005
+  min_person_fragmentation_reduction: 0.10
+  prefer_track1_rows_reduction: true
+

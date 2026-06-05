@@ -1,0 +1,24 @@
+person_cleanup_run:
+  name: "prune_singletons"
+  paths:
+    dataset_root: "/path/to/MTMC_Tracking_2026"
+    v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+    v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+    schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  class_id: 0
+  class_name: "Person"
+  apply_to_subsets: ["official_val", "internal_holdout", "test"]
+  classification:
+    short_rows_threshold: 3
+    low_mean_confidence_threshold: 0.05
+    low_max_confidence_threshold: 0.10
+  pruning:
+    enabled: true
+    class_id: 0
+    mode: "singletons"
+    mean_confidence_threshold: 0.05
+    max_confidence_threshold: 0.10
+    apply_to_subsets: ["official_val", "internal_holdout", "test"]
+  selective_merge_safe:
+    enabled: false
+

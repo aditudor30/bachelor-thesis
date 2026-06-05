@@ -1,0 +1,25 @@
+person_cleanup_run:
+  name: "selective_merge_safe"
+  paths:
+    dataset_root: "/path/to/MTMC_Tracking_2026"
+    v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+    v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+    schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  class_id: 0
+  class_name: "Person"
+  apply_to_subsets: ["official_val", "internal_holdout", "test"]
+  pruning:
+    enabled: false
+  selective_merge_safe:
+    enabled: true
+    diagnostic_only: true
+    apply_merges: false
+    class_id: 0
+    max_temporal_gap: 30
+    max_entry_exit_distance: 1.5
+    max_mean_distance: 1.5
+    require_no_temporal_overlap: true
+    require_same_scene: true
+    allow_same_camera: false
+    min_confidence: 0.05
+
