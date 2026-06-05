@@ -57,6 +57,10 @@ def compare_person_association_runs(
         if not name:
             continue
         run_root = root / "experiments" / name
+        status = _run_status(run_root)
+        if status.get("status") != "ok":
+            runs.append(_missing_or_failed_run(name, status, v2))
+            continue
         metrics = collect_person_association_metrics(
             name,
             run_root / "final_export",
@@ -114,6 +118,10 @@ def select_best_person_association(
 
 
 def _acceptable(row: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
+    if row.get("run_status") not in (None, "ok"):
+        return False
+    if int(float(row.get("applied_merge_mapping_size") or 0)) <= 0:
+        return False
     if bool(criteria.get("require_track1_errors_zero", True)):
         if row.get("track1_validation_errors") not in (0, 0.0, "0"):
             return False
@@ -126,6 +134,9 @@ def _acceptable(row: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
         return False
     false_delta = row.get("vs_v2_false_merge_rate_delta")
     if false_delta is not None and float(false_delta) > float(criteria.get("max_false_merge_increase", 0.005)):
+        return False
+    frag_reduction = row.get("vs_v2_person_fragmentation_reduction")
+    if frag_reduction is None or float(frag_reduction) < float(criteria.get("min_person_fragmentation_reduction", 0.05)):
         return False
     return True
 
@@ -152,6 +163,40 @@ def _write_outputs(summary: Dict[str, Any], root: Path) -> None:
     write_csv_rows(_per_class_rows(runs), comparison_root / "per_class_metrics.csv")
     write_csv_rows(_non_person_rows(summary), diagnostics_root / "non_person_impact_check.csv")
     write_csv_rows(_merge_rows(root), diagnostics_root / "merge_summary_by_run.csv")
+
+
+def _run_status(run_root: Path) -> Dict[str, Any]:
+    data = read_json(run_root / "summaries" / "run_status.json")
+    if data is not None:
+        return data
+    if not run_root.exists():
+        return {"run_name": run_root.name, "status": "missing", "error_message": "run directory missing"}
+    return {"run_name": run_root.name, "status": "missing_status", "error_message": "run_status.json missing"}
+
+
+def _missing_or_failed_run(name: str, status: Dict[str, Any], v2: Dict[str, Any]) -> Dict[str, Any]:
+    row = {
+        "run_name": name,
+        "run_status": status.get("status"),
+        "error_message": status.get("error_message"),
+        "accepted_by_selection_criteria": False,
+        "selection_score": -1e9,
+        "track1_validation_errors": None,
+        "track1_rows": None,
+        "generic_rows": None,
+        "person_rows": None,
+        "non_person_rows": None,
+        "person_fragmentation_approx": None,
+        "global_purity_mean": None,
+        "false_merge_rate": None,
+        "applied_merge_mapping_size": None,
+        "applied_merge_components": None,
+        "candidate_rows": None,
+        "per_class_rows": {},
+        "per_scene_rows": {},
+    }
+    row.update(compute_association_deltas(row, v2, "vs_v2"))
+    return row
 
 
 def _flat_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -205,4 +250,3 @@ def _merge_rows(root: Path) -> List[Dict[str, Any]]:
         row.update(data)
         rows.append(row)
     return rows
-

@@ -1,0 +1,45 @@
+reid_person:
+  name: "dummy_person_reid_diagnostic"
+  output_root: "output/reid_person/dummy"
+  class_id: 0
+  class_name: "Person"
+  progress: true
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  frame_global_records_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records"
+
+backend:
+  name: "dummy"
+  embedding_dim: 16
+  device: "cpu"
+  batch_size: 64
+  allow_dummy: true
+  normalize_l2: true
+
+crops:
+  padding_ratio: 0.10
+  min_width: 8
+  min_height: 16
+  output_size:
+    width: 128
+    height: 256
+  max_crops_per_track: 2
+  sampling: "uniform"
+
+embeddings:
+  normalize_l2: true
+  aggregate_method: "mean"
+  also_save_npy: false
+
+diagnostics:
+  subsets:
+    - "official_val"
+  scenes:
+    - "Warehouse_020"
+  max_pairs_per_scene: 10000
+  thresholds:
+    - 0.3
+    - 0.5
+    - 0.7
+

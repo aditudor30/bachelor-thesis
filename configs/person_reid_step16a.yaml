@@ -1,0 +1,56 @@
+reid_person:
+  name: "baseline_v2_pseudo3d_fullcam_person_reid_diagnostic"
+  output_root: "output/reid_person/baseline_v2_pseudo3d_fullcam"
+  class_id: 0
+  class_name: "Person"
+  progress: true
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  frame_global_records_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records"
+  generic_tracking_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/generic_tracking_export"
+  global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+  local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+
+backend:
+  name: "torchreid_osnet"
+  model_name: "osnet_x1_0"
+  weights_path: null
+  device: "cuda"
+  batch_size: 128
+  fallback_to_cpu: true
+  allow_dummy: false
+  normalize_l2: true
+
+crops:
+  padding_ratio: 0.10
+  min_width: 8
+  min_height: 16
+  output_size:
+    width: 128
+    height: 256
+  max_crops_per_track: 8
+  sampling: "uniform"
+  save_debug_grids: true
+
+embeddings:
+  normalize_l2: true
+  aggregate_method: "mean"
+  also_save_npy: true
+
+diagnostics:
+  subsets:
+    - "official_val"
+    - "internal_holdout"
+    - "test"
+  use_gt_for_val_holdout_diagnostic_only: true
+  max_pairs_per_scene: 200000
+  thresholds:
+    - 0.3
+    - 0.4
+    - 0.5
+    - 0.6
+    - 0.7
+    - 0.8
+

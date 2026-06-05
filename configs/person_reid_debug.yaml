@@ -1,0 +1,47 @@
+reid_person:
+  name: "debug_person_reid_diagnostic"
+  output_root: "output/reid_person/debug"
+  class_id: 0
+  class_name: "Person"
+  progress: true
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  frame_global_records_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records"
+
+backend:
+  name: "torchreid_osnet"
+  model_name: "osnet_x1_0"
+  weights_path: null
+  device: "cuda"
+  batch_size: 64
+  fallback_to_cpu: true
+  allow_dummy: false
+  normalize_l2: true
+
+crops:
+  padding_ratio: 0.10
+  min_width: 8
+  min_height: 16
+  output_size:
+    width: 128
+    height: 256
+  max_crops_per_track: 3
+  sampling: "uniform"
+
+embeddings:
+  normalize_l2: true
+  aggregate_method: "mean"
+  also_save_npy: false
+
+diagnostics:
+  subsets:
+    - "official_val"
+  scenes:
+    - "Warehouse_020"
+  max_pairs_per_scene: 20000
+  thresholds:
+    - 0.4
+    - 0.5
+    - 0.6
+
