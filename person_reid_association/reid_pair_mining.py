@@ -29,7 +29,7 @@ def load_reid_global_embeddings(reid_global_embeddings_root: Path) -> Dict[Track
     for record in records:
         if record.global_track_id is None:
             continue
-        key = (str(record.subset), str(record.scene_name), str(record.class_id), str(record.global_track_id))
+        key = normalize_track_key_for_reid((str(record.subset), str(record.scene_name), str(record.class_id), str(record.global_track_id)))
         mapping[key] = record
     return mapping
 
@@ -67,9 +67,14 @@ def attach_reid_to_pairs(rows: List[Dict[str, Any]], embeddings: Dict[TrackKey, 
     same_gt = 0
     different_gt = 0
     unknown_gt = 0
+    unique_query_keys = set()
+    unique_matched_keys = set()
+    missing_key_examples = []
     for row in rows:
-        key_a = parse_track_key(row.get("track_a"))
-        key_b = parse_track_key(row.get("track_b"))
+        key_a = normalize_track_key_for_reid(parse_track_key(row.get("track_a")))
+        key_b = normalize_track_key_for_reid(parse_track_key(row.get("track_b")))
+        unique_query_keys.add(key_a)
+        unique_query_keys.add(key_b)
         emb_a = embeddings.get(key_a)
         emb_b = embeddings.get(key_b)
         copied = dict(row)
@@ -78,13 +83,30 @@ def attach_reid_to_pairs(rows: List[Dict[str, Any]], embeddings: Dict[TrackKey, 
             copied["reid_missing_a"] = emb_a is None
             copied["reid_missing_b"] = emb_b is None
             copied["reid_similarity"] = ""
+            copied["reid_lookup_key_a"] = serialize_track_key(key_a)
+            copied["reid_lookup_key_b"] = serialize_track_key(key_b)
+            if len(missing_key_examples) < 10:
+                missing_key_examples.append(
+                    {
+                        "track_a": str(row.get("track_a", "")),
+                        "track_b": str(row.get("track_b", "")),
+                        "lookup_key_a": serialize_track_key(key_a),
+                        "lookup_key_b": serialize_track_key(key_b),
+                        "missing_a": emb_a is None,
+                        "missing_b": emb_b is None,
+                    }
+                )
             missing += 1
         else:
+            unique_matched_keys.add(key_a)
+            unique_matched_keys.add(key_b)
             similarity = cosine_similarity(emb_a.embedding, emb_b.embedding)
             copied["reid_status"] = "ok"
             copied["reid_missing_a"] = False
             copied["reid_missing_b"] = False
             copied["reid_similarity"] = similarity
+            copied["reid_lookup_key_a"] = serialize_track_key(key_a)
+            copied["reid_lookup_key_b"] = serialize_track_key(key_b)
             copied["embedding_id_a"] = emb_a.embedding_id
             copied["embedding_id_b"] = emb_b.embedding_id
             copied["gt_a"] = "" if emb_a.matched_gt_object_id is None else emb_a.matched_gt_object_id
@@ -106,6 +128,10 @@ def attach_reid_to_pairs(rows: List[Dict[str, Any]], embeddings: Dict[TrackKey, 
         "same_gt_reid_pairs": same_gt,
         "different_gt_reid_pairs": different_gt,
         "unknown_gt_reid_pairs": unknown_gt,
+        "unique_candidate_reid_lookup_keys": len(unique_query_keys),
+        "unique_candidate_reid_lookup_keys_matched": len(unique_matched_keys),
+        "embedding_key_overlap_ratio": float(len(unique_matched_keys)) / float(len(unique_query_keys)) if unique_query_keys else None,
+        "missing_key_examples": missing_key_examples,
     }
 
 
@@ -139,6 +165,8 @@ def write_reid_candidate_pairs(rows: List[Dict[str, Any]], output_csv: Path, sum
         "reject_reason",
         "reid_status",
         "reid_similarity",
+        "reid_lookup_key_a",
+        "reid_lookup_key_b",
         "embedding_id_a",
         "embedding_id_b",
         "gt_a",
@@ -164,3 +192,24 @@ def _normalize_gt_id(value: Any) -> str:
         return str(int(float(value)))
     except (TypeError, ValueError):
         return str(value)
+
+
+def normalize_track_key_for_reid(key: TrackKey) -> TrackKey:
+    """Normalize track key fields for ReID lookup without changing export IDs."""
+    return (
+        str(key[0]).strip(),
+        str(key[1]).strip(),
+        _normalize_numeric_string(key[2]),
+        _normalize_numeric_string(key[3]),
+    )
+
+
+def _normalize_numeric_string(value: Any) -> str:
+    text = str(value).strip()
+    try:
+        number = float(text)
+    except (TypeError, ValueError):
+        return text
+    if abs(number - int(number)) <= 1e-9:
+        return str(int(number))
+    return text

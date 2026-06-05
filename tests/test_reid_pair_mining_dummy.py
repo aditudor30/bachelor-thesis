@@ -50,10 +50,27 @@ def test_reid_pair_mining_attaches_similarity():
     assert summary["pairs_with_both_reid"] == 1
 
 
+def test_reid_pair_mining_normalizes_numeric_track_keys():
+    rows = [
+        {
+            "track_a": "official_val|Warehouse_020|0.0|10.0",
+            "track_b": "official_val|Warehouse_020|0.0|11.0",
+            "candidate_status": "ok",
+        }
+    ]
+    embeddings = {
+        ("official_val", "Warehouse_020", "0", "10"): _record("10", None, [1.0, 0.0]),
+        ("official_val", "Warehouse_020", "0", "11"): _record("11", None, [1.0, 0.0]),
+    }
+    output, summary = attach_reid_to_pairs(rows, embeddings)
+    assert output[0]["reid_status"] == "ok"
+    assert summary["pairs_with_both_reid"] == 1
+    assert summary["embedding_key_overlap_ratio"] == 1.0
+
+
 def test_reid_pair_mining_marks_missing_embedding():
     rows = [{"track_a": "official_val|Warehouse_020|0|10", "track_b": "official_val|Warehouse_020|0|99"}]
     embeddings = {("official_val", "Warehouse_020", "0", "10"): _record("10", None, [1.0, 0.0])}
     output, summary = attach_reid_to_pairs(rows, embeddings)
     assert output[0]["reid_status"] == "missing_reid"
     assert summary["pairs_missing_reid"] == 1
-

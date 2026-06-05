@@ -47,6 +47,14 @@ def main() -> None:
             )
         )
         print(
+            "  key_overlap: unique_query_keys=%s matched_keys=%s overlap_ratio=%s"
+            % (
+                candidate_summary.get("unique_candidate_reid_lookup_keys"),
+                candidate_summary.get("unique_candidate_reid_lookup_keys_matched"),
+                _fmt(candidate_summary.get("embedding_key_overlap_ratio")),
+            )
+        )
+        print(
             "  similarity: min=%s med=%s p90=%s p95=%s p99=%s max=%s mean=%s"
             % (
                 _fmt(score_summary.get("reid_similarity_min")),
@@ -78,6 +86,20 @@ def main() -> None:
             )
         )
         print("  merge reject reasons: %s" % _top_reason_text(merge_summary.get("reject_reasons", {}), args.top_reasons))
+        if candidate_summary.get("missing_key_examples"):
+            print("  missing key examples:")
+            for item in candidate_summary.get("missing_key_examples", [])[:3]:
+                print(
+                    "    a=%s lookup_a=%s missing_a=%s | b=%s lookup_b=%s missing_b=%s"
+                    % (
+                        item.get("track_a"),
+                        item.get("lookup_key_a"),
+                        item.get("missing_a"),
+                        item.get("track_b"),
+                        item.get("lookup_key_b"),
+                        item.get("missing_b"),
+                    )
+                )
         print("  quick_diagnosis: %s" % _diagnosis(run_name, candidate_summary, score_summary, merge_summary))
 
 def _score_summary(run_root: Path) -> Dict[str, Any]:
