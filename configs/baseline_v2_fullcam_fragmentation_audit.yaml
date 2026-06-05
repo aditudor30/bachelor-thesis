@@ -1,0 +1,57 @@
+fragmentation_audit:
+  name: "baseline_v2_pseudo3d_fullcam_fragmentation_audit"
+  output_root: "output/baseline_v2_pseudo3d_fullcam_fragmentation_audit"
+  progress: true
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+
+  v1_pipeline_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+  v1_local_tracks_root: "output/local_tracks/yolo11m_medium_conf001"
+  v1_tracklets_root: "output/tracklets/yolo11m_medium_conf001"
+  v1_candidates_root: "output/mtmc_candidates/yolo11m_medium_conf001"
+  v1_motion_clean_root: "output/mtmc_candidates_motion_clean/yolo11m_medium_conf001_mid_dense"
+  v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+
+  v2_pipeline_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam"
+  v2_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  v2_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+  v2_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam"
+  v2_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+
+thresholds:
+  singleton_length: 1
+  short_track_length: 3
+  very_short_track_length: 5
+  long_track_length: 30
+  high_fragmentation_ratio: 0.5
+  high_singleton_ratio: 0.5
+  high_rows_per_track_p95: 100
+  motion_invalid_warning_ratio: 0.10
+
+subsets:
+  - "official_val"
+  - "internal_holdout"
+  - "test"
+
+classes:
+  - class_id: 0
+    class_name: "Person"
+  - class_id: 1
+    class_name: "Forklift"
+  - class_id: 2
+    class_name: "PalletTruck"
+  - class_id: 3
+    class_name: "Transporter"
+  - class_id: 4
+    class_name: "FourierGR1T2"
+  - class_id: 5
+    class_name: "AgilityDigit"
+  - class_id: 6
+    class_name: "NovaCarter"
+
