@@ -6,7 +6,7 @@ reid_person:
   progress: true
 
 paths:
-  dataset_root: "/path/to/MTMC_Tracking_2026"
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
   frame_global_records_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records"
   generic_tracking_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/generic_tracking_export"
   global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
@@ -16,7 +16,7 @@ paths:
 backend:
   name: "torchreid_osnet"
   model_name: "osnet_x1_0"
-  weights_path: null
+  weights_path: "ckpt_weight/osnet_x1_0_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth"
   device: "cuda"
   batch_size: 128
   fallback_to_cpu: true
@@ -37,7 +37,7 @@ crops:
 embeddings:
   normalize_l2: true
   aggregate_method: "mean"
-  also_save_npy: true
+  also_save_npy: false
 
 diagnostics:
   subsets:
@@ -53,4 +53,3 @@ diagnostics:
     - 0.6
     - 0.7
     - 0.8
-

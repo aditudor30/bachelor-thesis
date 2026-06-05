@@ -6,7 +6,7 @@ reid_person:
   progress: true
 
 paths:
-  dataset_root: "/path/to/MTMC_Tracking_2026"
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
   frame_global_records_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records"
 
 backend:
@@ -42,4 +42,3 @@ diagnostics:
     - 0.3
     - 0.5
     - 0.7
-

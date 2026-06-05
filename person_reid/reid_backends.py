@@ -118,7 +118,8 @@ class TorchreidOSNetPersonBackend(BasePersonReIDBackend):
         state = torch.load(str(weights_path), map_location="cpu")
         if isinstance(state, dict) and "state_dict" in state:
             state = state["state_dict"]
-        self.model.load_state_dict(_strip_module_prefix(state), strict=False)
+        state = _filter_compatible_state_dict(self.model, _strip_module_prefix(state))
+        self.model.load_state_dict(state, strict=False)
         self.model.eval()
         self.model.to(self.device)
         self.embedding_dim = _infer_embedding_dim(self.model, self.device, self.torch)
@@ -209,9 +210,26 @@ def _strip_module_prefix(state: Any) -> Dict[str, Any]:
     return output
 
 
+def _filter_compatible_state_dict(model: Any, state: Dict[str, Any]) -> Dict[str, Any]:
+    """Drop incompatible checkpoint tensors such as ReID classifier weights."""
+    if not isinstance(state, dict):
+        return state
+    model_state = model.state_dict()
+    output = {}
+    for key, value in state.items():
+        if key not in model_state:
+            continue
+        try:
+            if tuple(value.shape) != tuple(model_state[key].shape):
+                continue
+        except AttributeError:
+            continue
+        output[key] = value
+    return output
+
+
 def _infer_embedding_dim(model: Any, device: str, torch_module: Any) -> int:
     dummy = torch_module.zeros((1, 3, 256, 128), dtype=torch_module.float32).to(device)
     with torch_module.no_grad():
         output = model(dummy).detach().cpu().numpy().reshape(-1)
     return int(output.size)
-
