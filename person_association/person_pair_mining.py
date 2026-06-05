@@ -120,20 +120,62 @@ def mine_person_candidate_pairs(
     config: Dict[str, Any],
     show_progress: bool = True,
 ) -> List[Dict[str, Any]]:
-    """Mine Person fragment pairs and keep rejected reasons for diagnostics."""
+    """Mine Person fragment pairs.
+
+    This compatibility wrapper returns only rows. New callers should use
+    mine_person_candidate_pairs_with_summary so rejected-pair counts can be
+    summarized without materializing every rejected pair in memory.
+    """
+    rows, _summary = mine_person_candidate_pairs_with_summary(fragments, config, show_progress=show_progress)
+    return rows
+
+
+def mine_person_candidate_pairs_with_summary(
+    fragments: List[PersonTrackFragment],
+    config: Dict[str, Any],
+    show_progress: bool = True,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """Mine Person fragment pairs with memory-safe rejected-pair accounting."""
     groups: Dict[Tuple[str, str], List[PersonTrackFragment]] = {}
     for fragment in fragments:
         groups.setdefault((fragment.subset, fragment.scene_name), []).append(fragment)
     rows = []
-    include_rejected = bool(config.get("include_rejected", True))
+    store_rejected = bool(config.get("store_rejected_pairs", config.get("include_rejected", False)))
+    max_temporal_gap = int(config.get("max_temporal_gap", 45))
+    total_pairs = 0
+    kept_pairs = 0
+    rejected_pairs = 0
+    reject_reasons: Dict[str, int] = {}
+    gt_diagnostic: Dict[str, int] = {}
     for group_key in progress_iter(sorted(groups.keys()), show_progress, "mine Person scenes", "scene"):
         scene_fragments = sorted(groups[group_key], key=lambda item: (item.start_frame or -1, item.global_track_id))
         for left_index, left in enumerate(scene_fragments):
             for right in scene_fragments[left_index + 1 :]:
+                if _can_break_on_temporal_gap(left, right, max_temporal_gap):
+                    break
                 row = pair_diagnostics(left, right, config)
-                if row.get("candidate_status") == "ok" or include_rejected:
+                total_pairs += 1
+                reason = str(row.get("reject_reason", "unknown"))
+                reject_reasons[reason] = reject_reasons.get(reason, 0) + 1
+                label = str(row.get("same_gt_diagnostic", "unknown"))
+                gt_diagnostic[label] = gt_diagnostic.get(label, 0) + 1
+                if row.get("candidate_status") == "ok":
+                    kept_pairs += 1
                     rows.append(row)
-    return rows
+                else:
+                    rejected_pairs += 1
+                    if store_rejected:
+                        rows.append(row)
+    summary = {
+        "total_pairs": total_pairs,
+        "kept_pairs": kept_pairs,
+        "rejected_pairs": rejected_pairs,
+        "stored_rows": len(rows),
+        "store_rejected_pairs": store_rejected,
+        "reject_reasons": reject_reasons,
+        "gt_diagnostic": gt_diagnostic,
+    }
+    return rows, summary
 
 
 def pair_diagnostics(
@@ -204,7 +246,12 @@ def summarize_candidate_pairs(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
-def write_candidate_pairs(rows: List[Dict[str, Any]], output_csv: Path, summary_json: Optional[Path] = None) -> None:
+def write_candidate_pairs(
+    rows: List[Dict[str, Any]],
+    output_csv: Path,
+    summary_json: Optional[Path] = None,
+    summary: Optional[Dict[str, Any]] = None,
+) -> None:
     """Write candidate pairs and optional summary."""
     fields = [
         "subset",
@@ -239,7 +286,14 @@ def write_candidate_pairs(rows: List[Dict[str, Any]], output_csv: Path, summary_
     ]
     write_csv_rows(rows, output_csv, fields)
     if summary_json is not None:
-        write_json(summarize_candidate_pairs(rows), summary_json)
+        write_json(summary if summary is not None else summarize_candidate_pairs(rows), summary_json)
+
+
+def _can_break_on_temporal_gap(left: PersonTrackFragment, right: PersonTrackFragment, max_temporal_gap: int) -> bool:
+    """Return True when later fragments will only be farther in time."""
+    if left.end_frame is None or right.start_frame is None:
+        return False
+    return int(right.start_frame) - int(left.end_frame) > int(max_temporal_gap)
 
 
 def _load_rows_from_frame_records(root: Path, subsets: Optional[List[str]], scenes: Optional[List[str]], show_progress: bool) -> List[Dict[str, Any]]:
@@ -379,4 +433,3 @@ def _same_gt_label(left: PersonTrackFragment, right: PersonTrackFragment) -> str
     if left_ids.intersection(right_ids):
         return "true_match"
     return "false_match"
-

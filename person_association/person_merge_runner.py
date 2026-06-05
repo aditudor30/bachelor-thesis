@@ -1,5 +1,6 @@
 """Run Person-aware association experiments."""
 
+import gc
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -7,7 +8,6 @@ from deep_oc_sort_3d.final_export.track1_export_types import load_track1_schema_
 from deep_oc_sort_3d.final_export.track1_validator import validate_track1_export, write_track1_validation_report
 from deep_oc_sort_3d.person_association.person_association_comparison import compare_person_association_runs
 from deep_oc_sort_3d.person_association.person_association_io import (
-    copy_filtered_csv_tree,
     frame_record_csv_files,
     generic_csv_files,
     infer_subset_from_path,
@@ -29,7 +29,7 @@ from deep_oc_sort_3d.person_association.person_merge_policy import (
 )
 from deep_oc_sort_3d.person_association.person_pair_mining import (
     load_person_fragments_from_final_export,
-    mine_person_candidate_pairs,
+    mine_person_candidate_pairs_with_summary,
     write_candidate_pairs,
 )
 from deep_oc_sort_3d.person_association.person_pair_scoring import score_person_pairs, summarize_pair_scores, write_score_rows
@@ -62,11 +62,16 @@ def run_person_association_experiment(
         schema_yaml = Path(str(paths.get("schema_yaml", "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml")))
         fragments = load_person_fragments_from_final_export(source_final, _fragment_config(config), show_progress=progress)
         write_json(_fragment_summary(fragments), output_root / "audit" / "person_fragment_summary.json")
-        candidate_rows = mine_person_candidate_pairs(fragments, config.get("pair_mining", {}), show_progress=progress)
+        candidate_rows, candidate_summary = mine_person_candidate_pairs_with_summary(
+            fragments,
+            config.get("pair_mining", {}),
+            show_progress=progress,
+        )
         write_candidate_pairs(
             candidate_rows,
             output_root / "candidate_pairs" / "person_candidate_pairs.csv",
             output_root / "candidate_pairs" / "person_candidate_pairs_summary.json",
+            summary=candidate_summary,
         )
         scored_rows = score_person_pairs(candidate_rows, config.get("scoring", {}))
         write_score_rows(scored_rows, output_root / "scores" / "person_pair_scores.csv")
@@ -74,10 +79,12 @@ def run_person_association_experiment(
             summarize_pair_scores(scored_rows, max_pair_score=config.get("merge_policy", {}).get("max_pair_score")),
             output_root / "scores" / "person_pair_scores_summary.json",
         )
-        all_frame_rows = _load_all_frame_rows(source_final)
         merge_policy = dict(config.get("merge_policy", {}))
         if bool(config.get("diagnostic_only", False)):
             merge_policy["apply_merges"] = False
+        all_frame_rows = []
+        if bool(merge_policy.get("apply_merges", True)):
+            all_frame_rows = _load_all_frame_rows(source_final)
         mapping, merge_audit_rows = build_person_merge_mapping(scored_rows, all_frame_rows, merge_policy)
         merge_summary = summarize_merge_audit(merge_audit_rows, mapping)
         write_csv_rows(merge_audit_rows, output_root / "diagnostics" / "person_merge_audit.csv")
@@ -141,6 +148,7 @@ def run_person_association_sweep(
             progress=progress,
         )
         statuses.append(status)
+        gc.collect()
         write_json({"runs": statuses}, root / "comparison" / "incremental_run_status.json")
     comparison = compare_person_association_runs(config_path, output_root=root, progress=progress)
     write_person_association_report(comparison, root / "report" / "PERSON_AWARE_ASSOCIATION_REPORT.md")
@@ -161,8 +169,17 @@ def mine_pairs_from_config(config_path: Path, output_root: Optional[Path] = None
     source_final = Path(str(paths.get("v2_final_export_root", "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam")))
     root = output_root if output_root is not None else Path(str(config.get("output_root", "output/person_association/baseline_v2_pseudo3d_fullcam")))
     fragments = load_person_fragments_from_final_export(source_final, _fragment_config(config), show_progress=progress)
-    rows = mine_person_candidate_pairs(fragments, config.get("pair_mining", {}), show_progress=progress)
-    write_candidate_pairs(rows, root / "candidate_pairs" / "person_candidate_pairs.csv", root / "candidate_pairs" / "person_candidate_pairs_summary.json")
+    rows, candidate_summary = mine_person_candidate_pairs_with_summary(
+        fragments,
+        config.get("pair_mining", {}),
+        show_progress=progress,
+    )
+    write_candidate_pairs(
+        rows,
+        root / "candidate_pairs" / "person_candidate_pairs.csv",
+        root / "candidate_pairs" / "person_candidate_pairs_summary.json",
+        summary=candidate_summary,
+    )
     write_json(_fragment_summary(fragments), root / "audit" / "person_fragment_summary.json")
     return {"fragments": len(fragments), "candidate_pairs": len(rows), "output_root": str(root)}
 
@@ -222,8 +239,7 @@ def _write_mapped_tree(
     progress: bool,
     desc: str,
 ) -> Dict[str, Any]:
-    rows_by_path: Dict[str, List[Dict[str, Any]]] = {}
-    fields_by_path: Dict[str, List[str]] = {}
+    rows_written = 0
     for path in progress_iter(files, progress, desc, "file"):
         rows, fields = read_csv_rows(path)
         subset = infer_subset_from_path(path)
@@ -233,9 +249,10 @@ def _write_mapped_tree(
             copied.setdefault("subset", subset)
             working.append(copied)
         mapped = apply_person_merge_mapping(working, mapping)
-        rows_by_path[str(path)] = [{field: row.get(field, "") for field in fields} for row in mapped]
-        fields_by_path[str(path)] = fields
-    return copy_filtered_csv_tree(source_root, output_root, files, rows_by_path, fields_by_path)
+        relative = path.relative_to(source_root)
+        write_csv_rows([{field: row.get(field, "") for field in fields} for row in mapped], output_root / relative, fields)
+        rows_written += len(mapped)
+    return {"files": len(files), "rows_written": rows_written}
 
 
 def _load_all_frame_rows(final_export_root: Path) -> List[Dict[str, Any]]:

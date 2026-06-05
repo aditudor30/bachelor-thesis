@@ -14,7 +14,8 @@ person_association_run:
     v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
     v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
   pair_mining:
-    include_rejected: true
+    include_rejected: false
+    store_rejected_pairs: false
     allow_same_camera: false
     max_temporal_gap: 45
     max_entry_exit_distance: 2.0
@@ -52,4 +53,3 @@ person_association_run:
       mode: "compact"
       max_rows_per_track: 5
       mean_confidence_threshold: 0.02
-
