@@ -75,7 +75,7 @@ def audit_candidates(
     if purity_values:
         output["mean_gt_purity"] = sum(purity_values) / float(len(purity_values))
     write_json(output, output_path)
-    write_csv(rejected_rows, diagnostics_root / "%s_rejected_candidates.csv" % run_name)
+    write_csv(rejected_rows, diagnostics_root / ("%s_rejected_candidates.csv" % run_name))
     return output
 
 
@@ -91,4 +91,3 @@ def _candidate_diag_row(row: Dict[str, Any]) -> Dict[str, Any]:
         "reject_reason": row.get("reject_reason"),
         "quality_flag": row.get("quality_flag"),
     }
-

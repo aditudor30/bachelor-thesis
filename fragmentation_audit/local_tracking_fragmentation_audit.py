@@ -45,8 +45,8 @@ def audit_local_tracking(
         }
     )
     write_json(summary, output_path)
-    write_csv(_worst_tracks(tracks, thresholds), diagnostics_root / "%s_worst_fragmented_local_tracks.csv" % run_name)
-    write_csv(_short_tracks(tracks, thresholds), diagnostics_root / "%s_short_local_tracks.csv" % run_name)
+    write_csv(_worst_tracks(tracks, thresholds), diagnostics_root / ("%s_worst_fragmented_local_tracks.csv" % run_name))
+    write_csv(_short_tracks(tracks, thresholds), diagnostics_root / ("%s_short_local_tracks.csv" % run_name))
     return summary
 
 
@@ -75,4 +75,3 @@ def _track_row(item: Dict[str, Any], thresholds: FragmentationThresholds) -> Dic
         "is_short": length <= thresholds.short_track_length,
         "num_gt_ids": len(item.get("gt_ids", {})),
     }
-

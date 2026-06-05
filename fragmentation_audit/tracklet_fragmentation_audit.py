@@ -47,7 +47,7 @@ def audit_tracklets(
     output["valid_ratio"] = rate(output["valid_tracklets"], output["total_tracklets"])
     output["mean_gt_purity"] = _mean_gt_purity(files, show_progress)
     write_json(output, output_path)
-    write_csv(rows_out[:5000], diagnostics_root / "%s_short_tracklets.csv" % run_name)
+    write_csv(rows_out[:5000], diagnostics_root / ("%s_short_tracklets.csv" % run_name))
     return output
 
 
@@ -91,4 +91,3 @@ def _mean_gt_purity(files: List[Path], show_progress: bool) -> Any:
     if not values:
         return None
     return sum(values) / float(len(values))
-

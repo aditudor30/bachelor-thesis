@@ -79,8 +79,8 @@ def audit_final_export(
     output["track1_rows"] = output["track1"].get("rows")
     output["track1_validation_errors"] = output["track1"].get("validation", {}).get("num_errors")
     write_json(output, output_path)
-    write_csv(_rows_per_track_rows(tracks, thresholds), diagnostics_root / "%s_rows_per_track_distribution.csv" % run_name)
-    write_csv(_global_id_fragmentation_rows(tracks, thresholds), diagnostics_root / "%s_global_id_fragmentation_analysis.csv" % run_name)
+    write_csv(_rows_per_track_rows(tracks, thresholds), diagnostics_root / ("%s_rows_per_track_distribution.csv" % run_name))
+    write_csv(_global_id_fragmentation_rows(tracks, thresholds), diagnostics_root / ("%s_global_id_fragmentation_analysis.csv" % run_name))
     return output
 
 

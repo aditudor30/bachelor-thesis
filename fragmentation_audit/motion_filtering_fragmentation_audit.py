@@ -87,7 +87,7 @@ def audit_motion_filtering(
     output["jump_ratio_p95"] = percentile(jump_ratios, 95.0)
     worst = sorted(worst, key=lambda item: float(item.get("max_step_distance_3d") or 0.0), reverse=True)
     write_json(output, output_path)
-    write_csv(worst[:500], diagnostics_root / "%s_worst_motion_outliers.csv" % run_name)
+    write_csv(worst[:500], diagnostics_root / ("%s_worst_motion_outliers.csv" % run_name))
     return output
 
 
@@ -115,4 +115,3 @@ def _mean(values: List[float]) -> Any:
     if not values:
         return None
     return sum(values) / float(len(values))
-

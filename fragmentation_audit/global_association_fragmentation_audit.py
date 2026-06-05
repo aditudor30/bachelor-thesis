@@ -108,7 +108,7 @@ def audit_global_association(
     _merge_scene_summaries(global_root, output)
     worst_tracks = sorted(worst_tracks, key=lambda row: (safe_int(row.get("num_candidates")), safe_int(row.get("duration"))))
     write_json(output, output_path)
-    write_csv(worst_tracks[:1000], diagnostics_root / "%s_singleton_global_tracks.csv" % run_name)
+    write_csv(worst_tracks[:1000], diagnostics_root / ("%s_singleton_global_tracks.csv" % run_name))
     return output
 
 
