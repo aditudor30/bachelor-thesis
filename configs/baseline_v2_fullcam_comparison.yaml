@@ -1,0 +1,3 @@
+comparison:
+  config: "deep_oc_sort_3d/configs/baseline_v2_fullcam_full_pipeline.yaml"
+  output_root: "output/baseline_v2_pseudo3d_fullcam_comparison"

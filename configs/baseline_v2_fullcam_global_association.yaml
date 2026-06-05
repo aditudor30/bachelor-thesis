@@ -1,0 +1,9 @@
+global_association:
+  candidates_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+  output_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  global_config: "deep_oc_sort_3d/configs/global_mtmc_transition_medium_conf001.yaml"
+  subsets: ["official_val", "internal_holdout", "test"]
+  scenes: null
+  class_names: null
+  max_candidates_per_scene: null
+  progress: true

@@ -1,0 +1,11 @@
+tracklets:
+  tracking_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  output_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+  subsets: ["official_val", "internal_holdout", "test"]
+  scenes: null
+  camera_ids: null
+  min_length: 3
+  min_mean_confidence: 0.01
+  smooth_trajectory: true
+  smoothing_window: 5
+  progress: true

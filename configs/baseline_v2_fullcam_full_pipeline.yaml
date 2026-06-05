@@ -1,0 +1,89 @@
+baseline_v2_fullcam:
+  name: "baseline_v2_pseudo3d_fullcam"
+  progress: true
+
+stage_configs:
+  observations: "deep_oc_sort_3d/configs/baseline_v2_fullcam_observations.yaml"
+  local_tracking: "deep_oc_sort_3d/configs/baseline_v2_fullcam_local_tracking.yaml"
+  tracklets: "deep_oc_sort_3d/configs/baseline_v2_fullcam_tracklets.yaml"
+  candidates: "deep_oc_sort_3d/configs/baseline_v2_fullcam_candidates.yaml"
+  motion_filtering: "deep_oc_sort_3d/configs/baseline_v2_fullcam_motion_filtering.yaml"
+  global_association: "deep_oc_sort_3d/configs/baseline_v2_fullcam_global_association.yaml"
+  final_export: "deep_oc_sort_3d/configs/baseline_v2_fullcam_final_export.yaml"
+  track1_export: "deep_oc_sort_3d/configs/baseline_v2_fullcam_track1_export.yaml"
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  class_priors: "output/3d_priors/baseline_v1_geometry_only/priors/class_dimension_priors_final.json"
+
+  baseline_v1_pipeline_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+  input_observations_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001/observations3d"
+  pseudo3d_predictions_root: "output/pseudo3d/baseline_v2_pseudo3d_fullcam/predictions_stabilized"
+
+  output_pipeline_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam"
+  output_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  output_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+  output_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam"
+  output_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+  output_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  output_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  output_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  output_package_root: "output/submission_packages/baseline_v2_pseudo3d_fullcam"
+  output_comparison_root: "output/baseline_v2_pseudo3d_fullcam_comparison"
+
+  baseline_v1_local_tracks_root: "output/local_tracks/yolo11m_medium_conf001"
+  baseline_v1_tracklets_root: "output/tracklets/yolo11m_medium_conf001"
+  baseline_v1_candidates_root: "output/mtmc_candidates/yolo11m_medium_conf001"
+  baseline_v1_motion_clean_root: "output/mtmc_candidates_motion_clean/yolo11m_medium_conf001_mid_dense"
+  baseline_v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  baseline_v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  baseline_v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+
+pseudo3d_integration:
+  output_source: "baseline_v2_pseudo3d_fullcam"
+  use_stabilized_pseudo3d: true
+  prefer_pseudo3d_over_original: true
+  fallback_to_original_3d_if_missing: true
+  fallback_to_class_prior_dimensions: true
+  drop_if_no_center_3d: false
+  require_world_coordinates: true
+  write_source_metadata: true
+  bbox_iou_fallback_enabled: true
+  bbox_iou_fallback_threshold: 0.8
+  min_required_pseudo3d_used_rate: 0.95
+  fail_if_below_threshold: true
+
+subsets:
+  official_val:
+    split: "val"
+    scenes:
+      - "Warehouse_020"
+      - "Warehouse_021"
+      - "Warehouse_022"
+  internal_holdout:
+    split: "train"
+    scenes:
+      - "Warehouse_014"
+      - "Warehouse_015"
+      - "Warehouse_016"
+  test:
+    split: "test"
+    scenes:
+      - "Warehouse_023"
+      - "Warehouse_024"
+      - "Warehouse_025"
+
+local_tracking:
+  preset: "mid"
+  max_misses: 45
+  max_3d_distance: 4.0
+  cost_threshold: 0.8
+  min_iou: 0.0
+
+global_association:
+  mode: "overlap_transition"
+  use_reid: false
+
+validation:
+  require_track1_errors_zero: true
+  compare_with_baseline_v1: true

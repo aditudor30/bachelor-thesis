@@ -1,0 +1,9 @@
+track1_export:
+  generic_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/generic_tracking_export/test"
+  output_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  schema_confirmed: true
+  schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  force_unconfirmed_preview: false
+  subsets: ["test"]
+  scenes: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]
+  progress: true

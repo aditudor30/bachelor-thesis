@@ -1,0 +1,22 @@
+final_export:
+  root: "/path/to/MTMC_Tracking_2026"
+  local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  global_mtmc_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  output_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  include_unassigned: true
+  namespace_global_ids: true
+  global_id_stride: 100000
+  drop_invalid_bbox: true
+  drop_unassigned_for_generic_export: true
+  drop_invalid_bbox_for_generic_export: true
+  progress: true
+  subsets:
+    official_val:
+      split: "val"
+      scenes: ["Warehouse_020", "Warehouse_021", "Warehouse_022"]
+    internal_holdout:
+      split: "train"
+      scenes: ["Warehouse_014", "Warehouse_015", "Warehouse_016"]
+    test:
+      split: "test"
+      scenes: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]

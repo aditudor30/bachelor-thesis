@@ -30,7 +30,7 @@ def merge_observation_with_pseudo3d(
         _apply_fallback(row, pseudo3d_prediction, config, fallback_reason)
     _ensure_dimensions(row, pseudo3d_prediction, config)
     _ensure_yaw(row, pseudo3d_prediction)
-    row["source"] = "baseline_v2_pseudo3d"
+    row["source"] = str(policy.get("output_source", "baseline_v2_pseudo3d"))
     return row
 
 

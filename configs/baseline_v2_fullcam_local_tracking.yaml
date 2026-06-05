@@ -1,0 +1,16 @@
+tracking:
+  run_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam"
+  output_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  subsets: ["official_val", "internal_holdout", "test"]
+  scenes: null
+  camera_ids: null
+  mode: "hybrid"
+  min_confidence: 0.01
+  min_hits: 2
+  max_misses: 45
+  cost_threshold: 0.8
+  max_3d_distance: 4.0
+  min_iou: 0.0
+  class_must_match: true
+  max_detections_per_frame: 200
+  progress: true
