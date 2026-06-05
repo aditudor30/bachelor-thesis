@@ -1,0 +1,67 @@
+global_tuning_run:
+  name: "person_relaxed"
+  paths:
+    dataset_root: "/path/to/MTMC_Tracking_2026"
+    input_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+    local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+    schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  selected_subsets: ["official_val", "internal_holdout", "test"]
+  global_mtmc:
+    class_must_match: true
+    allow_same_camera_links: false
+    enable_overlap_association: true
+    enable_transition_association: true
+    include_singletons: true
+    max_frame_delta_for_overlap: 2
+    max_mean_overlap_distance: 2.5
+    max_median_overlap_distance: 2.0
+    min_temporal_gap: 1
+    max_temporal_gap: 90
+    max_entry_exit_distance: 4.0
+    max_normalized_distance: 0.35
+    max_expected_position_error: 5.0
+    max_velocity_angle_deg: 120.0
+    overlap_distance_weight: 1.0
+    transition_distance_weight: 1.0
+    entry_exit_distance_weight: 1.0
+    normalized_distance_weight: 0.5
+    temporal_gap_weight: 0.01
+    velocity_weight: 0.1
+    velocity_angle_weight: 0.1
+    expected_error_weight: 0.5
+    confidence_weight: 0.05
+    cost_threshold: 1.0
+    transition_cost_threshold: 1.0
+    max_candidates_per_group: null
+    per_class_overrides:
+      "0":
+        max_frame_delta_for_overlap: 4
+        max_mean_overlap_distance: 3.5
+        max_median_overlap_distance: 3.0
+        max_temporal_gap: 150
+        max_entry_exit_distance: 6.5
+        max_normalized_distance: 0.60
+        max_expected_position_error: 9.0
+        max_velocity_angle_deg: 160.0
+        cost_threshold: 1.15
+        transition_cost_threshold: 1.30
+        temporal_gap_weight: 0.008
+        velocity_angle_weight: 0.08
+        expected_error_weight: 0.45
+      Person:
+        max_frame_delta_for_overlap: 4
+        max_mean_overlap_distance: 3.5
+        max_median_overlap_distance: 3.0
+        max_temporal_gap: 150
+        max_entry_exit_distance: 6.5
+        max_normalized_distance: 0.60
+        max_expected_position_error: 9.0
+        max_velocity_angle_deg: 160.0
+        cost_threshold: 1.15
+        transition_cost_threshold: 1.30
+        temporal_gap_weight: 0.008
+        velocity_angle_weight: 0.08
+        expected_error_weight: 0.45
+  compact_export:
+    enabled: false
+

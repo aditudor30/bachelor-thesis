@@ -44,6 +44,32 @@ def merge_global_association_config(config: Optional[Dict[str, Any]]) -> Dict[st
     return merged
 
 
+def apply_global_association_per_class_overrides(
+    config: Optional[Dict[str, Any]],
+    class_id: Any,
+    class_name: Any = None,
+) -> Dict[str, Any]:
+    """Return config with optional per-class overrides applied.
+
+    Overrides are backward-compatible. If ``per_class_overrides`` is absent,
+    the returned config is exactly the merged global config. Keys may be either
+    class ids as strings, for example ``"0"``, or class names such as
+    ``"Person"``.
+    """
+    merged = merge_global_association_config(config)
+    overrides = merged.get("per_class_overrides")
+    if not isinstance(overrides, dict):
+        return merged
+    keys = [str(class_id)]
+    if class_name is not None:
+        keys.append(str(class_name))
+    for key in keys:
+        value = overrides.get(key)
+        if isinstance(value, dict):
+            merged.update(value)
+    return merged
+
+
 def temporal_overlap(a: MTMCTrackletCandidate, b: MTMCTrackletCandidate) -> int:
     """Return number of overlapping frames."""
     start = max(int(a.start_frame), int(b.start_frame))
@@ -147,7 +173,7 @@ def compute_global_association_cost(
     config: Dict[str, Any],
 ) -> GlobalAssociationEdge:
     """Compute global association edge for two candidates."""
-    cfg = merge_global_association_config(config)
+    cfg = apply_global_association_per_class_overrides(config, a.class_id, a.class_name)
     relation = temporal_relation(a, b)
     overlap = temporal_overlap(a, b)
     gap = temporal_gap(a, b)

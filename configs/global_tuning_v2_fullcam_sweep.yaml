@@ -1,0 +1,50 @@
+global_tuning:
+  name: "baseline_v2_pseudo3d_fullcam_global_tuning"
+  output_root: "output/global_tuning/baseline_v2_pseudo3d_fullcam"
+  progress: true
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  input_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+  local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  baseline_v2_current_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_current_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_current_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  baseline_v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  baseline_v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  baseline_v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+  output_root: "output/global_tuning/baseline_v2_pseudo3d_fullcam"
+
+subsets:
+  official_val:
+    split: "val"
+    scenes: ["Warehouse_020", "Warehouse_021", "Warehouse_022"]
+  internal_holdout:
+    split: "train"
+    scenes: ["Warehouse_014", "Warehouse_015", "Warehouse_016"]
+  test:
+    split: "test"
+    scenes: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]
+
+runs:
+  - name: "baseline_current"
+    config: "deep_oc_sort_3d/configs/global_tuning_v2_fullcam_baseline_current.yaml"
+  - name: "overlap_loose"
+    config: "deep_oc_sort_3d/configs/global_tuning_v2_fullcam_overlap_loose.yaml"
+  - name: "transition_loose"
+    config: "deep_oc_sort_3d/configs/global_tuning_v2_fullcam_transition_loose.yaml"
+  - name: "balanced_loose"
+    config: "deep_oc_sort_3d/configs/global_tuning_v2_fullcam_balanced_loose.yaml"
+  - name: "person_relaxed"
+    config: "deep_oc_sort_3d/configs/global_tuning_v2_fullcam_person_relaxed.yaml"
+  - name: "conservative_compact"
+    config: "deep_oc_sort_3d/configs/global_tuning_v2_fullcam_conservative_compact.yaml"
+
+selection_criteria:
+  max_purity_drop_vs_v2_current: 0.005
+  max_false_merge_increase_vs_v2_current: 0.01
+  min_fragmentation_reduction: 0.10
+  prefer_track1_rows_reduction: true
+  require_track1_validation_errors_zero: true
+

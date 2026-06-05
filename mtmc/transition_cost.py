@@ -39,12 +39,32 @@ def merge_transition_config(config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return merged
 
 
+def apply_transition_per_class_overrides(
+    config: Optional[Dict[str, Any]],
+    class_id: Any,
+    class_name: Any = None,
+) -> Dict[str, Any]:
+    """Return transition config with optional per-class overrides applied."""
+    merged = merge_transition_config(config)
+    overrides = merged.get("per_class_overrides")
+    if not isinstance(overrides, dict):
+        return merged
+    keys = [str(class_id)]
+    if class_name is not None:
+        keys.append(str(class_name))
+    for key in keys:
+        value = overrides.get(key)
+        if isinstance(value, dict):
+            merged.update(value)
+    return merged
+
+
 def compute_transition_cost(
     pair: TransitionCandidatePair,
     config: Dict[str, Any],
 ) -> Tuple[float, bool, str]:
     """Compute transition cost and threshold decision."""
-    cfg = merge_transition_config(config)
+    cfg = apply_transition_per_class_overrides(config, pair.class_id, pair.class_name)
     reject = _hard_reject_reason(pair, cfg)
     if reject != "ok":
         return INF_COST, False, reject

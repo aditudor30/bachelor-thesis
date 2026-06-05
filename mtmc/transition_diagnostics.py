@@ -11,7 +11,11 @@ from deep_oc_sort_3d.mtmc.global_association_cost import (
     temporal_overlap,
     temporal_relation,
 )
-from deep_oc_sort_3d.mtmc.transition_cost import compute_transition_cost, merge_transition_config
+from deep_oc_sort_3d.mtmc.transition_cost import (
+    apply_transition_per_class_overrides,
+    compute_transition_cost,
+    merge_transition_config,
+)
 from deep_oc_sort_3d.mtmc.transition_types import TransitionCandidatePair
 
 
@@ -187,15 +191,17 @@ def _camera_pair_indices(
     indices_b: List[int],
     cfg: Dict[str, Any],
 ) -> List[Tuple[int, int]]:
-    min_gap = int(cfg["min_temporal_gap"])
-    max_gap = int(cfg["max_temporal_gap"])
     output = []
     sorted_a = sorted(indices_a, key=lambda index: candidates[index].start_frame)
     sorted_b = sorted(indices_b, key=lambda index: candidates[index].start_frame)
     for index_a in sorted_a:
         candidate_a = candidates[index_a]
+        cfg_a = apply_transition_per_class_overrides(cfg, candidate_a.class_id, candidate_a.class_name)
         for index_b in sorted_b:
             candidate_b = candidates[index_b]
+            cfg_b = apply_transition_per_class_overrides(cfg, candidate_b.class_id, candidate_b.class_name)
+            min_gap = min(int(cfg_a["min_temporal_gap"]), int(cfg_b["min_temporal_gap"]))
+            max_gap = max(int(cfg_a["max_temporal_gap"]), int(cfg_b["max_temporal_gap"]))
             if temporal_overlap(candidate_a, candidate_b) > 0:
                 continue
             gap = temporal_gap(candidate_a, candidate_b)

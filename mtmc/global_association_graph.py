@@ -6,6 +6,7 @@ import numpy as np
 
 from deep_oc_sort_3d.mtmc.candidate_types import MTMCTrackletCandidate
 from deep_oc_sort_3d.mtmc.global_association_cost import (
+    apply_global_association_per_class_overrides,
     compute_global_association_cost,
     merge_global_association_config,
     temporal_gap,
@@ -158,14 +159,15 @@ def _pairs_for_group(
 ) -> List[Tuple[int, int]]:
     sorted_indices = sorted(indices, key=lambda index: (candidates[index].start_frame, candidates[index].end_frame))
     pairs = []
-    max_gap = int(cfg["max_temporal_gap"])
     transition_enabled = bool(cfg["enable_transition_association"])
     allow_same_camera = bool(cfg["allow_same_camera_links"])
     for outer_pos, index_a in enumerate(sorted_indices):
         candidate_a = candidates[index_a]
-        latest_start = int(candidate_a.end_frame) + (max_gap if transition_enabled else 0)
+        max_gap_a = _candidate_max_temporal_gap(candidate_a, cfg)
         for index_b in sorted_indices[outer_pos + 1 :]:
             candidate_b = candidates[index_b]
+            max_gap = max(max_gap_a, _candidate_max_temporal_gap(candidate_b, cfg))
+            latest_start = int(candidate_a.end_frame) + (max_gap if transition_enabled else 0)
             if int(candidate_b.start_frame) > latest_start:
                 break
             if not allow_same_camera and candidate_a.camera_id == candidate_b.camera_id:
@@ -176,6 +178,11 @@ def _pairs_for_group(
             if transition_enabled and temporal_gap(candidate_a, candidate_b) <= max_gap:
                 pairs.append((index_a, index_b))
     return pairs
+
+
+def _candidate_max_temporal_gap(candidate: MTMCTrackletCandidate, cfg: Dict[str, Any]) -> int:
+    effective = apply_global_association_per_class_overrides(cfg, candidate.class_id, candidate.class_name)
+    return int(effective["max_temporal_gap"])
 
 
 def _can_merge_components(
