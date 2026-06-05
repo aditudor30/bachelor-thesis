@@ -53,16 +53,28 @@ def summarize_reid_pair_scores(rows: List[Dict[str, Any]], threshold: Optional[f
     passing_reid = []
     if threshold is not None:
         passing_reid = [row for row in with_reid if (safe_float(row.get("reid_similarity"), -1.0) or -1.0) >= float(threshold)]
+    similarities = [row.get("reid_similarity") for row in with_reid]
     return {
         "scored_pairs": len(rows),
         "pairs_with_reid": len(with_reid),
         "pairs_missing_reid": len(rows) - len(with_reid),
         "reid_similarity_threshold": threshold,
         "pairs_passing_reid_threshold": len(passing_reid),
+        "pairs_passing_reid_070": _count_at_least(similarities, 0.70),
+        "pairs_passing_reid_075": _count_at_least(similarities, 0.75),
+        "pairs_passing_reid_080": _count_at_least(similarities, 0.80),
+        "pairs_passing_reid_082": _count_at_least(similarities, 0.82),
+        "pairs_passing_reid_085": _count_at_least(similarities, 0.85),
         "same_gt_passing_reid": len([row for row in passing_reid if row.get("reid_gt_pair_label") == "same_gt"]),
         "different_gt_passing_reid": len([row for row in passing_reid if row.get("reid_gt_pair_label") == "different_gt"]),
         "combined_score_mean": _mean([row.get("combined_pair_score") for row in rows]),
-        "reid_similarity_mean": _mean([row.get("reid_similarity") for row in with_reid]),
+        "reid_similarity_min": _percentile(similarities, 0),
+        "reid_similarity_mean": _mean(similarities),
+        "reid_similarity_median": _percentile(similarities, 50),
+        "reid_similarity_p90": _percentile(similarities, 90),
+        "reid_similarity_p95": _percentile(similarities, 95),
+        "reid_similarity_p99": _percentile(similarities, 99),
+        "reid_similarity_max": _percentile(similarities, 100),
     }
 
 
@@ -119,3 +131,18 @@ def _mean(values: List[Any]) -> Optional[float]:
         return None
     return float(sum(numeric)) / float(len(numeric))
 
+
+def _count_at_least(values: List[Any], threshold: float) -> int:
+    numeric = [safe_float(value, None) for value in values]
+    return len([value for value in numeric if value is not None and float(value) >= float(threshold)])
+
+
+def _percentile(values: List[Any], p: float) -> Optional[float]:
+    numeric = sorted([safe_float(value, None) for value in values if safe_float(value, None) is not None])
+    if not numeric:
+        return None
+    if len(numeric) == 1:
+        return float(numeric[0])
+    index = int(round((float(p) / 100.0) * float(len(numeric) - 1)))
+    index = max(0, min(len(numeric) - 1, index))
+    return float(numeric[index])
