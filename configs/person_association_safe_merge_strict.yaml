@@ -1,0 +1,42 @@
+person_association_run:
+  name: "safe_merge_strict"
+  output_root: "output/person_association/baseline_v2_pseudo3d_fullcam"
+  diagnostic_only: false
+  class_id: 0
+  class_name: "Person"
+  apply_to_subsets: ["official_val", "internal_holdout", "test"]
+  paths:
+    schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+    v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+    v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+    v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+    v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+    v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+    v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  pair_mining:
+    include_rejected: true
+    allow_same_camera: false
+    max_temporal_gap: 30
+    max_entry_exit_distance: 1.25
+    max_expected_position_error: 1.75
+    max_velocity_angle: 90.0
+    require_no_temporal_conflict: true
+    min_mean_confidence: 0.03
+  scoring:
+    temporal_gap_weight: 0.25
+    distance_weight: 0.45
+    expected_position_weight: 0.25
+    velocity_weight: 0.15
+    confidence_weight: 0.15
+    max_temporal_gap: 30
+    max_entry_exit_distance: 1.25
+    max_expected_position_error: 1.75
+    max_velocity_angle: 90.0
+  merge_policy:
+    apply_merges: true
+    max_pair_score: 0.34
+    min_mean_confidence: 0.03
+    reject_known_false_gt: true
+    prevent_duplicate_frame_keys: true
+    preserve_non_person: true
+

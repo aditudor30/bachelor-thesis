@@ -1,0 +1,35 @@
+person_association:
+  name: "baseline_v2_pseudo3d_fullcam_person_association"
+  output_root: "output/person_association/baseline_v2_pseudo3d_fullcam"
+  class_id: 0
+  class_name: "Person"
+
+paths:
+  schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  v2_export_compact_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam/runs/export_compact"
+  v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+  output_root: "output/person_association/baseline_v2_pseudo3d_fullcam"
+
+runs:
+  - name: "diagnostic_only"
+    config: "deep_oc_sort_3d/configs/person_association_diagnostic.yaml"
+  - name: "safe_merge_strict"
+    config: "deep_oc_sort_3d/configs/person_association_safe_merge_strict.yaml"
+  - name: "safe_merge_medium"
+    config: "deep_oc_sort_3d/configs/person_association_safe_merge_medium.yaml"
+  - name: "safe_merge_with_export_compact"
+    config: "deep_oc_sort_3d/configs/person_association_safe_merge_with_export_compact.yaml"
+  - name: "val_tuned_test_safe"
+    config: "deep_oc_sort_3d/configs/person_association_val_tuned_test_safe.yaml"
+
+criteria:
+  require_track1_errors_zero: true
+  require_non_person_unchanged: true
+  max_false_merge_increase: 0.005
+  max_purity_drop: 0.003
+  min_person_fragmentation_reduction: 0.05
