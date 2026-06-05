@@ -1,0 +1,45 @@
+person_reid_association_run:
+  name: "reid_medium"
+  output_root: "output/person_reid_association/baseline_v2_pseudo3d_fullcam"
+  diagnostic_only: false
+  class_id: 0
+  class_name: "Person"
+  apply_to_subsets: ["official_val", "internal_holdout", "test"]
+  paths:
+    schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+    v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+    v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+    v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+    v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+    v2_export_compact_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam/runs/export_compact"
+    reid_global_embeddings_root: "output/reid_person/baseline_v2_pseudo3d_fullcam/embeddings_global_fragment"
+  pair_mining:
+    include_rejected: false
+    store_rejected_pairs: false
+    allow_same_camera: false
+    max_temporal_gap: 45
+    max_entry_exit_distance: 2.0
+    max_expected_position_error: 3.0
+    max_velocity_angle: 120.0
+    require_no_temporal_conflict: true
+    min_mean_confidence: 0.03
+  scoring:
+    temporal_gap_weight: 0.20
+    distance_weight: 0.30
+    expected_position_weight: 0.20
+    velocity_weight: 0.15
+    confidence_weight: 0.10
+    reid_weight: 0.35
+    max_temporal_gap: 45
+    max_entry_exit_distance: 2.0
+    max_expected_position_error: 3.0
+    max_velocity_angle: 120.0
+  merge_policy:
+    apply_merges: true
+    reid_similarity_threshold: 0.82
+    max_combined_pair_score: 0.38
+    min_mean_confidence: 0.03
+    reject_known_false_gt: true
+    prevent_duplicate_frame_keys: true
+    preserve_non_person: true
+

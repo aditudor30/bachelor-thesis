@@ -1,0 +1,35 @@
+person_reid_association:
+  name: "baseline_v2_pseudo3d_fullcam_reid_person_association"
+  output_root: "output/person_reid_association/baseline_v2_pseudo3d_fullcam"
+  class_id: 0
+  class_name: "Person"
+
+paths:
+  schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  v2_export_compact_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam/runs/export_compact"
+  person_geometry_association_root: "output/person_association/baseline_v2_pseudo3d_fullcam/experiments/diagnostic_only"
+  v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+  reid_global_embeddings_root: "output/reid_person/baseline_v2_pseudo3d_fullcam/embeddings_global_fragment"
+  output_root: "output/person_reid_association/baseline_v2_pseudo3d_fullcam"
+
+runs:
+  - name: "diagnostic_only"
+    config: "deep_oc_sort_3d/configs/person_reid_association_diagnostic.yaml"
+  - name: "reid_strict"
+    config: "deep_oc_sort_3d/configs/person_reid_association_strict.yaml"
+  - name: "reid_medium"
+    config: "deep_oc_sort_3d/configs/person_reid_association_medium.yaml"
+  - name: "reid_balanced"
+    config: "deep_oc_sort_3d/configs/person_reid_association_balanced.yaml"
+  - name: "reid_with_export_compact"
+    config: "deep_oc_sort_3d/configs/person_reid_association_with_export_compact.yaml"
+
+criteria:
+  require_track1_errors_zero: true
+  require_non_person_unchanged: true
+  require_non_noop: true
+  max_false_merge_increase: 0.005
+  max_purity_drop: 0.003
