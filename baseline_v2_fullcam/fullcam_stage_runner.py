@@ -51,6 +51,22 @@ DEFAULT_STAGE_CONFIGS = {
 }
 
 
+OVERWRITE_STAGES = set(
+    [
+        "observations",
+        "local_tracking",
+        "tracklets",
+        "candidates",
+        "motion_filtering",
+        "global_association",
+        "final_export",
+        "validation",
+        "package",
+        "comparison",
+    ]
+)
+
+
 def load_pipeline_config(path: Path) -> Dict[str, Any]:
     """Load a fullcam pipeline YAML config."""
     data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
@@ -85,7 +101,7 @@ def build_stage_commands(
         else:
             command.extend(["--config", str(_full_pipeline_config_path(config))])
         command.append("--progress" if progress else "--no-progress")
-        if overwrite and not skip_existing:
+        if overwrite and not skip_existing and stage in OVERWRITE_STAGES:
             command.append("--overwrite")
         commands.append({"stage": stage, "command": command, "status": "ready"})
     return commands
