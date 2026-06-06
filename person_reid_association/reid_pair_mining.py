@@ -21,7 +21,7 @@ from deep_oc_sort_3d.person_reid_association.reid_association_io import (
 )
 
 
-def load_reid_global_embeddings(reid_global_embeddings_root: Path) -> Dict[TrackKey, Any]:
+def load_reid_global_embeddings(reid_global_embeddings_root: Path, person_class_id: int = 0) -> Dict[TrackKey, Any]:
     """Load global-fragment ReID embeddings keyed by Person final-export track key."""
     path = reid_global_embeddings_root / "person_global_fragment_embeddings.jsonl"
     records = read_embeddings_jsonl(path)
@@ -31,6 +31,12 @@ def load_reid_global_embeddings(reid_global_embeddings_root: Path) -> Dict[Track
             continue
         key = normalize_track_key_for_reid((str(record.subset), str(record.scene_name), str(record.class_id), str(record.global_track_id)))
         mapping[key] = record
+        # Step 16A writes Person-only global-fragment embeddings. Some historical
+        # runs have class_id=-1 in the embedding metadata even though the source
+        # records are Person. Add a Person-class alias so ReID lookup matches
+        # final-export Person track keys without regenerating embeddings.
+        person_key = normalize_track_key_for_reid((str(record.subset), str(record.scene_name), str(person_class_id), str(record.global_track_id)))
+        mapping[person_key] = record
     return mapping
 
 
@@ -45,7 +51,7 @@ def mine_reid_person_pairs_from_config(config: Dict[str, Any], show_progress: bo
         "scenes": config.get("apply_to_scenes"),
     }
     fragments = load_person_fragments_from_final_export(final_root, fragment_config, show_progress=show_progress)
-    embeddings = load_reid_global_embeddings(reid_root)
+    embeddings = load_reid_global_embeddings(reid_root, person_class_id=int(fragment_config["class_id"]))
     geometry_rows, geometry_summary = mine_person_candidate_pairs_with_summary(
         fragments,
         config.get("pair_mining", {}),
