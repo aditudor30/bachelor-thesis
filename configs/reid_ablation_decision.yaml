@@ -1,0 +1,45 @@
+reid_ablation_decision:
+  name: "baseline_v2_pseudo3d_fullcam_reid_ablation_decision"
+  output_root: "output/reid_ablation_decision/baseline_v2_pseudo3d_fullcam"
+  progress: true
+
+paths:
+  v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+
+  person_cleanup_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+  person_geometry_association_root: "output/person_association/baseline_v2_pseudo3d_fullcam"
+  person_reid_root: "output/reid_person/baseline_v2_pseudo3d_fullcam"
+  person_reid_association_root: "output/person_reid_association/baseline_v2_pseudo3d_fullcam"
+
+variants:
+  - name: "v1_geometry_only"
+    type: "v1"
+  - name: "v2_pseudo3d_fullcam_current"
+    type: "v2_current"
+  - name: "v2_export_compact"
+    type: "export_compact"
+  - name: "person_geometry_only_best"
+    type: "geometry_only"
+  - name: "reid_strict"
+    type: "reid_only"
+  - name: "reid_medium"
+    type: "reid_only"
+  - name: "reid_balanced"
+    type: "reid_only"
+  - name: "reid_with_export_compact"
+    type: "reid_plus_compact"
+
+decision_thresholds:
+  max_false_merge_increase: 0.005
+  max_purity_drop: 0.003
+  min_fragmentation_reduction_for_upgrade: 0.01
+  min_track1_rows_reduction_for_compact: 1000
+  require_non_person_unchanged: true
+  require_track1_valid: true
+
