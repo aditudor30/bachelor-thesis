@@ -70,6 +70,8 @@ def compare_reid_ablation_variants(rows: List[Dict[str, Any]], thresholds: Optio
 
 def is_noop_variant(row: Dict[str, Any]) -> bool:
     """Return True when a variant has no measurable effect."""
+    if row.get("source_type") in ("v1", "v2_current"):
+        return False
     reid_merges = _num(row.get("num_reid_merges")) or 0.0
     geometry_merges = _num(row.get("num_geometry_merges")) or 0.0
     export_rows = _num(row.get("num_export_dropped_rows")) or 0.0
@@ -83,6 +85,8 @@ def is_noop_variant(row: Dict[str, Any]) -> bool:
 
 def is_safe_variant(row: Dict[str, Any], thresholds: Dict[str, Any]) -> bool:
     """Return True when a variant satisfies conservative safety gates."""
+    if row.get("source_type") in ("v1", "v2_current"):
+        return row.get("track1_valid") is not False
     if bool(thresholds.get("require_track1_valid", True)) and row.get("track1_valid") is not True:
         return False
     if bool(thresholds.get("require_non_person_unchanged", True)):
@@ -157,9 +161,9 @@ def classify_improvement_source(row: Dict[str, Any], export_compact: Dict[str, A
 def recommendation_for_variant(row: Dict[str, Any]) -> str:
     """Produce a concise recommendation for a variant row."""
     source = str(row.get("improvement_source", "none"))
-    if row.get("source_type") == "v1" and row.get("track1_valid") is True:
+    if row.get("source_type") == "v1" and row.get("track1_valid") is not False:
         return "keep_v1_for_submission"
-    if row.get("source_type") == "v2_current" and row.get("track1_valid") is True:
+    if row.get("source_type") == "v2_current" and row.get("track1_valid") is not False:
         return "keep_v2_current_as_3d_mvp"
     if row.get("source_type") == "export_compact" and row.get("is_safe"):
         return "keep_v2_export_compact_as_safe_variant"

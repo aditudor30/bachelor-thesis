@@ -31,3 +31,14 @@ def test_reid_ablation_comparison_labels_export_compact_source():
     assert by_name["compact"]["improvement_source"] == "export_compact"
     assert by_name["reid_plus"]["improvement_source"] == "export_compact_only"
 
+
+def test_reid_ablation_comparison_keeps_v2_current_as_reference():
+    rows = [
+        _row("v2", "v2_current", 1000, 80, 0, 0),
+        _row("reid_strict", "reid_only", 1000, 80, 0, 0),
+    ]
+    comparison = compare_reid_ablation_variants(rows)
+    by_name = {row["variant_name"]: row for row in comparison["variants"]}
+    assert by_name["v2"]["is_noop"] is False
+    assert by_name["v2"]["recommendation"] == "keep_v2_current_as_3d_mvp"
+    assert by_name["reid_strict"]["is_noop"] is True

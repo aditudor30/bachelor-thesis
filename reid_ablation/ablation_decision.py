@@ -28,10 +28,10 @@ def make_final_decision(comparison: Dict[str, Any]) -> Dict[str, Any]:
     reid_plus = [row for row in rows if row.get("source_type") == "reid_plus_compact"]
     verdicts = []
     keep = {}
-    if v1 and v1.get("track1_valid") is True:
+    if v1 and _track1_not_invalid(v1):
         verdicts.append("keep_v1_for_submission")
         keep["submission_safe_baseline"] = v1.get("variant_name")
-    if v2 and v2.get("track1_valid") is True:
+    if v2 and _track1_not_invalid(v2):
         verdicts.append("keep_v2_current_as_3d_mvp")
         keep["provenance_3d_mvp"] = v2.get("variant_name")
     if export_compact and export_compact.get("is_safe"):
@@ -106,3 +106,7 @@ def _number(value: Any) -> Any:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _track1_not_invalid(row: Dict[str, Any]) -> bool:
+    return row.get("track1_valid") is not False
