@@ -1,0 +1,44 @@
+final_freeze:
+  name: "track1_final_baseline_freeze"
+  output_root: "output/final_freeze"
+  progress: true
+
+paths:
+  v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  pseudo3d_fullcam_root: "output/pseudo3d/baseline_v2_pseudo3d_fullcam"
+
+  person_cleanup_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+  v2_compact_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+
+  reid_root: "output/reid_person/baseline_v2_pseudo3d_fullcam"
+  reid_ablation_root: "output/reid_ablation_decision/baseline_v2_pseudo3d_fullcam"
+  person_reid_association_root: "output/person_reid_association/baseline_v2_pseudo3d_fullcam"
+
+figures:
+  max_per_category: 12
+  search_roots:
+    - "output/visualizations_mvp"
+    - "output/mvp_paper_figures"
+    - "output/paper_figures"
+    - "output/robust_bev"
+    - "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+    - "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+
+packages:
+  create_submission_safe_v1: true
+  create_mvp_3d_v2: true
+  create_safe_compact_v2: true
+  create_report_assets: true
+
+final_decision:
+  submission_safe_baseline: "v1_geometry_only"
+  provenance_3d_mvp: "v2_pseudo3d_fullcam_current"
+  safe_compact_variant: "v2_export_compact"
+  reid_status: "infrastructure_valid_but_no_tracking_gain"
+
