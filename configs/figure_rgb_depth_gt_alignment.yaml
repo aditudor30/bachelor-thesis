@@ -1,0 +1,35 @@
+figure_rgb_depth_gt_alignment:
+  output_dir: "figures/alignment"
+  output_name: "rgb_depth_gt_calibration_alignment_panel"
+  dpi: 300
+  max_objects: 5
+  min_bbox_area: 800
+  depth_percentile_min: 2
+  depth_percentile_max: 98
+  show_labels: true
+  show_center_point: true
+  show_bottom_center_point: true
+  show_sampling_patch: true
+  sampling_patch_radius: 3
+  caption: "Vizualizare calitativa pentru validarea alinierii RGB-Depth-GT-Calibration. Panoul din stanga prezinta frame-ul RGB cu bbox-uri ground truth si punctele de sampling utilizate pentru estimarea profunzimii, iar panoul din dreapta afiseaza harta de profunzime corespunzatoare, cu aceleasi bbox-uri si puncte suprapuse. Suprapunerea consistenta a adnotarilor pe cele doua reprezentari confirma alinierea spatiala intre imaginea RGB, depth map si adnotarile 2D."
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+
+sample:
+  split: "val"
+  scene_name: "Warehouse_020"
+  camera_id: "Camera_0000"
+  frame_id: 100
+
+auto_select:
+  enabled: true
+  frame_start: 0
+  frame_end: 500
+  prefer_classes:
+    - "Person"
+    - "Forklift"
+    - "Transporter"
+    - "PalletTruck"
+  min_valid_objects: 3
+
