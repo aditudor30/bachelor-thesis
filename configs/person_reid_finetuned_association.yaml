@@ -1,0 +1,91 @@
+person_reid_finetuned_association:
+  name: "person_reid_finetuned_association_v1"
+  output_root: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam"
+  progress: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  v2_frame_global_records_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records"
+
+  pretrained_reid_root: "output/reid_person/baseline_v2_pseudo3d_fullcam"
+  previous_reid_association_root: "output/person_reid_association/baseline_v2_pseudo3d_fullcam"
+  export_compact_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+
+  finetuned_checkpoint: "output/reid_training/osnet_person_smartspaces_v1/checkpoints/best_retrieval_top1.pth"
+  schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+
+model:
+  architecture: "osnet_x1_0"
+  embedding_dim: 512
+  input_height: 256
+  input_width: 128
+  use_torchreid: true
+  l2_normalize: true
+
+embedding_extraction:
+  class_id: 0
+  class_name: "Person"
+  batch_size: 128
+  num_workers: 4
+  device: "cuda"
+  use_amp: true
+  save_debug_crops: false
+  max_crops_per_fragment: 20
+  sample_strategy: "uniform_temporal"
+  min_crop_width: 12
+  min_crop_height: 24
+  padding_ratio: 0.10
+
+candidate_scoring:
+  class_id: 0
+  use_geometry_constraints: true
+  use_temporal_constraints: true
+  use_motion_constraints: true
+  max_temporal_gap: 300
+  max_spatial_distance: 12.0
+  max_expected_position_error: 12.0
+  max_velocity_angle: 140.0
+  forbid_same_camera_temporal_overlap: true
+  require_valid_embeddings: true
+  min_mean_confidence: 0.03
+  reid_weight: 0.35
+  temporal_gap_weight: 0.15
+  distance_weight: 0.25
+  velocity_weight: 0.15
+  confidence_weight: 0.10
+  expected_position_weight: 0.15
+
+sweep:
+  thresholds:
+    - 0.65
+    - 0.70
+    - 0.75
+    - 0.80
+    - 0.85
+  variants:
+    - "threshold_065"
+    - "threshold_070"
+    - "threshold_075"
+    - "threshold_080"
+    - "threshold_085"
+    - "combined_safe_075"
+    - "combined_safe_080"
+
+selection:
+  max_allowed_false_merge_rate_delta: 0.01
+  max_allowed_purity_drop: 0.01
+  min_person_fragmentation_reduction_for_clear_gain: 50
+  require_track1_valid: true
+  require_non_person_unchanged: true
+  compact_short_rows_threshold: 5
+  compact_low_mean_confidence_threshold: 0.02
+  compact_low_max_confidence_threshold: 0.06
+  compact_max_rows_per_track: 5
+
+figures:
+  enabled: true
