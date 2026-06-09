@@ -1,0 +1,57 @@
+final_freeze_v2:
+  name: "final_project_freeze_v2"
+  output_root: "output/final_freeze_v2"
+  progress: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+
+  v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+  v1_package_root: "output/submission_packages/baseline_v1_geometry_only"
+
+  v2_pipeline_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam"
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  v2_comparison_root: "output/baseline_v2_pseudo3d_fullcam_comparison"
+
+  v2_export_compact_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+
+  reid_pretrained_root: "output/reid_person/baseline_v2_pseudo3d_fullcam"
+  reid_pretrained_association_root: "output/person_reid_association/baseline_v2_pseudo3d_fullcam"
+  reid_ablation_root: "output/reid_ablation_decision/baseline_v2_pseudo3d_fullcam"
+
+  reid_dataset_root: "output/reid_training/person_smartspaces_v1"
+  reid_finetune_root: "output/reid_training/osnet_person_smartspaces_v1"
+  reid_finetuned_association_root: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam"
+  reid_visual_decision_root: "output/person_reid_visual_decision/baseline_v2_pseudo3d_fullcam"
+
+  pseudo3d_fullcam_root: "output/pseudo3d/baseline_v2_pseudo3d_fullcam"
+
+figures:
+  search_roots:
+    - "figures/alignment"
+    - "output/final_freeze/figures"
+    - "output/final_figures"
+    - "output/visualizations"
+    - "output/visualizations_mvp"
+    - "output/person_reid_visual_decision/baseline_v2_pseudo3d_fullcam/visual_panels"
+    - "output/person_reid_visual_decision/baseline_v2_pseudo3d_fullcam/figures"
+    - "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam/figures"
+    - "output/reid_training/osnet_person_smartspaces_v1/figures"
+  copy_existing: true
+  generate_charts: true
+  max_per_category: 12
+  max_reid_panels_per_category: 5
+
+packages:
+  copy_track1_files: true
+  copy_reports: true
+  copy_tables: true
+  copy_figures: true
+  checksum_large_files: false
+  large_file_mb_threshold: 200
+
