@@ -82,6 +82,7 @@ selection:
   min_person_fragmentation_reduction_for_clear_gain: 50
   require_track1_valid: true
   require_non_person_unchanged: true
+  require_reid_activity: true
   compact_short_rows_threshold: 5
   compact_low_mean_confidence_threshold: 0.02
   compact_low_max_confidence_threshold: 0.06

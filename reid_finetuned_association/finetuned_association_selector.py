@@ -21,6 +21,9 @@ def select_finetuned_reid_variant(comparison: Dict[str, Any], criteria: Dict[str
     if invalid and len(invalid) == len(evaluated):
         verdict = "finetuned_reid_invalid_fix_required"
         best = None
+    elif not any(has_reid_activity(row) for row in evaluated):
+        verdict = "finetuned_reid_valid_but_no_clear_gain"
+        best = None
     else:
         acceptable = [row for row in evaluated if row.get("selection_acceptable")]
         if acceptable:
@@ -47,6 +50,8 @@ def select_finetuned_reid_variant(comparison: Dict[str, Any], criteria: Dict[str
 
 def acceptable_variant(row: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
     """Return whether a variant passes safety gates."""
+    if bool(criteria.get("require_reid_activity", True)) and not has_reid_activity(row):
+        return False
     if bool(criteria.get("require_track1_valid", True)) and not is_track1_valid(row):
         return False
     if bool(criteria.get("require_non_person_unchanged", True)) and not non_person_unchanged(row):
@@ -92,3 +97,14 @@ def purity_drop(row: Dict[str, Any]) -> float:
 def false_merge_delta(row: Dict[str, Any]) -> float:
     """Return false merge rate delta."""
     return safe_float(row.get("vs_v2_false_merge_rate_delta"), 0.0) or 0.0
+
+
+def has_reid_activity(row: Dict[str, Any]) -> bool:
+    """Return True only when fine-tuned ReID actually affected or could affect association."""
+    with_reid = safe_float(row.get("pairs_with_both_reid"), 0.0) or 0.0
+    passing = safe_float(row.get("pairs_passing_reid_threshold"), 0.0) or 0.0
+    selected = safe_float(row.get("selected_edges_before_conflict_filter"), 0.0) or 0.0
+    merges = safe_float(row.get("merges_applied"), None)
+    if merges is None:
+        merges = safe_float(row.get("applied_merge_mapping_size"), 0.0) or 0.0
+    return with_reid > 0.0 and (passing > 0.0 or selected > 0.0 or merges > 0.0)

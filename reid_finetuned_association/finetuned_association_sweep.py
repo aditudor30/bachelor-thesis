@@ -36,7 +36,13 @@ def run_finetuned_person_reid_association_sweep(
     save_resolved_config(config, Path(config_path), output_root)
     status: Dict[str, Any] = {"status": "ok", "output_root": str(output_root), "config_path": str(config_path)}
     if run_embeddings:
-        status["embedding_extraction"] = extract_finetuned_person_embeddings_from_config(config, show_progress=progress, overwrite=overwrite)
+        embedding_summary = extract_finetuned_person_embeddings_from_config(config, show_progress=progress, overwrite=overwrite)
+        status["embedding_extraction"] = embedding_summary
+        if embedding_summary.get("status") != "ok":
+            status["status"] = "stopped_no_embeddings"
+            status["reason"] = "fine-tuned ReID embedding extraction did not produce usable crop embeddings"
+            write_json(status, output_root / "comparison" / "step18c_status.json")
+            return status
     if run_scoring:
         status["candidate_scoring"] = score_finetuned_candidate_pairs_from_config(config, show_progress=progress)
     if run_sweep:

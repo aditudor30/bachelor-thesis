@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 
+from deep_oc_sort_3d.data.dataset_structure import scene_name_to_id
 from deep_oc_sort_3d.data.frame_io import list_video_files, safe_read_video_frame
 from deep_oc_sort_3d.reid_finetuned_association.finetuned_association_io import (
     bool_text,
@@ -66,6 +67,8 @@ def extract_finetuned_person_embeddings_from_config(config: Dict[str, Any], show
     paths = config.get("paths", {})
     frame_root = Path(str(paths.get("v2_frame_global_records_root", "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records")))
     dataset_root = Path(str(paths.get("dataset_root", "/path/to/MTMC_Tracking_2026")))
+    if not dataset_root.exists():
+        raise FileNotFoundError("dataset_root missing or invalid for fine-tuned ReID crop extraction: %s" % dataset_root)
     extraction_cfg = config.get("embedding_extraction", {})
     files = frame_record_csv_files(
         frame_root,
@@ -129,8 +132,8 @@ def extract_embeddings_from_frame_file(
         strategy=str(extraction_cfg.get("sample_strategy", "uniform_temporal")),
     )
     subset = _first_value(rows, "subset")
-    split = _first_value(rows, "split")
     scene_name = _first_value(rows, "scene_name")
+    split = infer_dataset_split(_first_value(rows, "split"), scene_name)
     camera_id = _first_value(rows, "camera_id")
     video_path = find_video_path(dataset_root, split, scene_name, camera_id)
     frame_cache: Dict[int, Optional[np.ndarray]] = {}
@@ -322,8 +325,13 @@ def summarize_embedding_extraction(file_summaries: List[Dict[str, Any]], crop_ro
     """Summarize extraction output."""
     total_person = sum([int(row.get("person_records", 0)) for row in file_summaries])
     total_sampled = sum([int(row.get("sampled_records", 0)) for row in file_summaries])
+    status = "ok" if len(crop_rows) > 0 else "no_crop_embeddings"
+    warnings = []
+    if len(crop_rows) <= 0:
+        warnings.append("No crop embeddings were extracted. Check dataset_root, real split inference, video paths, and bbox fields.")
     return {
-        "status": "ok",
+        "status": status,
+        "warnings": warnings,
         "files": len(file_summaries),
         "total_person_records": total_person,
         "sampled_crop_records": total_sampled,
@@ -342,8 +350,12 @@ def embedding_coverage_summary(crop_rows: List[Dict[str, Any]], fragment_rows: L
     """Summarize embedding coverage."""
     total_person = sum([int(row.get("person_records", 0)) for row in file_summaries])
     valid_fragments = [row for row in fragment_rows if str(row.get("valid_embedding", "")) == "1"]
+    warnings = []
+    if not crop_rows:
+        warnings.append("No fine-tuned ReID crop embeddings are available; association sweep must be treated as no-ReID/no-op.")
     return {
-        "status": "ok",
+        "status": "ok" if crop_rows else "no_crop_embeddings",
+        "warnings": warnings,
         "total_person_records": total_person,
         "crop_embeddings": len(crop_rows),
         "fragment_embeddings": len(fragment_rows),
@@ -393,11 +405,27 @@ def crop_image_xyxy(image: np.ndarray, bbox: Tuple[float, float, float, float], 
 
 def find_video_path(dataset_root: Path, split: str, scene_name: str, camera_id: str) -> Optional[Path]:
     """Find a per-camera video in the dataset."""
-    videos_dir = Path(dataset_root) / str(split) / str(scene_name) / "videos"
+    resolved_split = infer_dataset_split(split, scene_name)
+    videos_dir = Path(dataset_root) / str(resolved_split) / str(scene_name) / "videos"
     for video_path in list_video_files(videos_dir):
         if video_path.stem == str(camera_id):
             return video_path
     return None
+
+
+def infer_dataset_split(split: str, scene_name: str) -> str:
+    """Map diagnostic subsets to real dataset splits using scene id."""
+    text = str(split)
+    if text in ("train", "val", "test"):
+        return text
+    scene_id = scene_name_to_id(str(scene_name))
+    if scene_id is None:
+        return text
+    if scene_id <= 19:
+        return "train"
+    if scene_id <= 22:
+        return "val"
+    return "test"
 
 
 def resolve_device(requested: str) -> str:
