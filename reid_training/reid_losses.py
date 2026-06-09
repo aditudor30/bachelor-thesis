@@ -1,6 +1,6 @@
 """Loss functions for OSNet Person ReID fine-tuning."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 
 def cross_entropy_loss(logits: Any, labels: Any) -> Any:
@@ -34,13 +34,17 @@ def batch_hard_triplet_loss(features: Any, labels: Any, margin: float = 0.3) -> 
     return F.relu(hardest_positive[valid] - hardest_negative[valid] + float(margin)).mean()
 
 
-def total_reid_loss(outputs: Dict[str, Any], labels: Any, config: Dict[str, Any]) -> Dict[str, Any]:
-    """Compute weighted CE + triplet loss."""
-    training = config.get("training", {})
-    ce_weight = float(training.get("loss_ce_weight", 1.0))
-    triplet_weight = float(training.get("loss_triplet_weight", 0.5))
+def total_reid_loss(outputs: Dict[str, Any], labels: Any, config: Dict[str, Any]) -> Tuple[Any, Dict[str, float]]:
+    """Compute weighted CE + triplet loss and return loss plus detached components."""
+    loss_cfg = config.get("loss", {})
+    ce_weight = float(loss_cfg.get("ce_weight", 1.0))
+    triplet_weight = float(loss_cfg.get("triplet_weight", 0.5))
     ce = cross_entropy_loss(outputs["logits"], labels)
-    triplet = batch_hard_triplet_loss(outputs["features"], labels, margin=float(training.get("triplet_margin", 0.3)))
+    triplet = batch_hard_triplet_loss(outputs["features"], labels, margin=float(loss_cfg.get("triplet_margin", 0.3)))
     total = ce * ce_weight + triplet * triplet_weight
-    return {"total": total, "ce": ce, "triplet": triplet}
-
+    components = {
+        "total_loss": float(total.detach().cpu().item()),
+        "ce_loss": float(ce.detach().cpu().item()),
+        "triplet_loss": float(triplet.detach().cpu().item()),
+    }
+    return total, components
