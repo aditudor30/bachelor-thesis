@@ -1,0 +1,52 @@
+osnet_person_smartspaces_finetune:
+  name: "osnet_person_smartspaces_v1"
+  output_root: "output/reid_training/osnet_person_smartspaces_v1"
+
+paths:
+  pretrained_osnet_weights: "ckpt_weight/osnet_x1_0_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth"
+
+data:
+  train_metadata_csv: "output/reid_training/person_smartspaces_v1/metadata/train_split.csv"
+  val_metadata_csv: "output/reid_training/person_smartspaces_v1/metadata/val_split.csv"
+  batch_size: 64
+  num_workers: 4
+  min_crops_per_identity: 5
+  max_train_crops_per_identity: 120
+  max_val_crops_per_identity:
+  max_val_crops: 20000
+
+model:
+  architecture: "osnet_x1_0"
+  input_height: 256
+  input_width: 128
+  embedding_dim: 512
+
+sampler:
+  use_balanced_identity_sampler: true
+  identities_per_batch: 16
+  images_per_identity: 4
+  seed: 42
+
+training:
+  device: "cuda"
+  epochs: 20
+  learning_rate: 0.0003
+  weight_decay: 0.0005
+  optimizer: "adamw"
+  scheduler: "cosine"
+  freeze_backbone_epochs: 2
+  eval_every_epochs: 5
+  use_amp: true
+
+loss:
+  ce_weight: 1.0
+  triplet_weight: 1.0
+  triplet_margin: 0.3
+
+evaluation:
+  topk: [1, 5, 10]
+  retrieval_chunk_size: 512
+  max_map_queries: 5000
+  max_similarity_pairs: 200000
+  thresholds: [0.70, 0.75, 0.80, 0.82, 0.85]
+  seed: 42
