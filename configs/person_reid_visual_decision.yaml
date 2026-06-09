@@ -1,0 +1,28 @@
+person_reid_visual_decision:
+  name: "person_reid_visual_decision_v1"
+  output_root: "output/person_reid_visual_decision/baseline_v2_pseudo3d_fullcam"
+  variants:
+    - "threshold_080"
+    - "combined_safe_080"
+  default_max_events: 40
+  max_events_per_variant:
+    threshold_080: 40
+    combined_safe_080: 60
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  finetuned_association_root: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_frame_global_records_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records"
+
+heuristics:
+  reid_similarity_threshold: 0.80
+  high_similarity: 0.86
+  min_crops_per_fragment: 2
+  suspicious_temporal_gap: 220.0
+  suspicious_spatial_distance: 12.0
+  bad_spatial_distance: 20.0
+
+panels:
+  max_crops_per_fragment: 4
+
