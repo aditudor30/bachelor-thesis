@@ -1,0 +1,41 @@
+freeze_upload_candidates:
+  name: "freeze_upload_candidates_21f"
+  output_root: "output/frozen_upload_candidates"
+  progress: true
+  create_zip_packages: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+  v2_current:
+    candidate_name: "v2_current"
+    description: "V2 current pseudo3D fullcam coverage-first candidate"
+    source_track1_path: "output/track1_submission/baseline_v2_pseudo3d_fullcam/track1.txt"
+    source_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+    validation_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam/validation"
+    global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+    final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+    comparison_root: "output/baseline_v2_pseudo3d_fullcam_comparison"
+  v3_gap_aware_soft:
+    candidate_name: "v3_gap_aware_soft"
+    description: "ByteTrack local candidate with gap_aware_soft motion filtering"
+    source_track1_path: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft/track1_submission/track1.txt"
+    source_track1_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft/track1_submission"
+    validation_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft/validation"
+    global_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft/global_mtmc"
+    final_export_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft/final_export"
+    comparison_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/comparison"
+
+track1_validation:
+  expected_num_columns: 11
+  valid_scene_ids: [23, 24, 25]
+  valid_class_ids: [0, 1, 2, 3, 4, 5, 6]
+  require_positive_dimensions: true
+  duplicate_key: ["scene_id", "class_id", "object_id", "frame_id"]
+
+packaging:
+  create_zip: true
+  zip_contains_single_track1_txt: true
+
+figures:
+  enabled: true
