@@ -5,7 +5,7 @@ bytetrack_coverage_tuning:
   random_seed: 42
 
 paths:
-  dataset_root: "/path/to/MTMC_Tracking_2026"
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
   yolo_pipeline_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
   v2_observations_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam/observations3d"
   baseline_v2_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
