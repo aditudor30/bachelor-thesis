@@ -1,0 +1,74 @@
+person_scorer_association:
+  name: "person_scorer_association_v1"
+  output_root: "output/learned_association/person_scorer_association_v1"
+  progress: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  schema_yaml: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+
+  v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  v2_frame_global_records_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam/frame_global_records"
+  v2_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+
+  reid_finetuned_association_root: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam"
+  candidate_pair_reid_scores_csv: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam/diagnostics/candidate_pair_reid_scores.csv"
+  export_compact_root: "output/person_cleanup/baseline_v2_pseudo3d_fullcam"
+
+  scorer_root: "output/learned_association/person_scorer_v1"
+  selected_model_json: "output/learned_association/person_scorer_v1/models/selected_model.json"
+  mlp_checkpoint: "output/learned_association/person_scorer_v1/models/mlp_pairwise_scorer_best.pth"
+  selected_features_json: "output/learned_association/person_scorer_v1/data/selected_features.json"
+  feature_scaler_pkl: "output/learned_association/person_scorer_v1/data/feature_scaler.pkl"
+  preprocessing_summary_json: "output/learned_association/person_scorer_v1/data/feature_preprocessing_summary.json"
+  selected_thresholds_json: "output/learned_association/person_scorer_v1/evaluation/selected_thresholds.json"
+
+candidate_scoring:
+  class_id: 0
+  class_name: "Person"
+  require_valid_reid: true
+  require_valid_geometry: false
+  use_existing_candidate_pairs: true
+  rebuild_if_missing: true
+  batch_size: 4096
+  device: "cuda"
+
+sweep:
+  variants:
+    - "mlp_strict_077"
+    - "mlp_very_strict_085"
+    - "mlp_reid_gate_080"
+    - "mlp_reid_gate_085"
+    - "mlp_geometry_safe"
+    - "mlp_combined_export_compact"
+
+thresholds:
+  mlp_strict: 0.77
+  mlp_very_strict: 0.85
+  reid_gate_080: 0.80
+  reid_gate_085: 0.85
+
+constraints:
+  max_temporal_gap_default: 300
+  max_temporal_gap_safe: 150
+  max_spatial_distance_default: 12.0
+  max_spatial_distance_safe: 8.0
+  forbid_same_camera_temporal_overlap: true
+  forbid_temporal_conflict: true
+  max_component_size: 20
+  require_same_scene: true
+  require_same_class: true
+
+selection:
+  require_track1_valid: true
+  require_non_person_unchanged: true
+  max_allowed_false_merge_rate_delta: 0.01
+  max_allowed_purity_drop: 0.01
+  min_person_fragmentation_reduction_for_clear_gain: 60
+  compare_against: "combined_safe_080"
+
+figures:
+  enabled: true
