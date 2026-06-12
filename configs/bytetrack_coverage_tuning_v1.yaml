@@ -1,0 +1,155 @@
+bytetrack_coverage_tuning:
+  name: "bytetrack_coverage_tuning_v1"
+  output_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam"
+  progress: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  yolo_pipeline_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+  v2_observations_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam/observations3d"
+  baseline_v2_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  baseline_21b_root: "output/baseline_v2_pseudo3d_fullcam_bytetrack_local_comparison"
+  baseline_21b_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  baseline_21b_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  baseline_21b_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  baseline_21b_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  baseline_21b_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  baseline_21b_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  baseline_21b_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  baseline_v1_local_tracks_root: "output/local_tracks/yolo11m_medium_conf001"
+  baseline_v1_tracklets_root: "output/tracklets/yolo11m_medium_conf001_mid"
+  baseline_v1_candidates_root: "output/mtmc_candidates/yolo11m_medium_conf001"
+  baseline_v1_motion_clean_root: "output/mtmc_candidates_motion_clean/yolo11m_medium_conf001_mid_dense"
+  baseline_v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  baseline_v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  baseline_v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+
+subsets:
+  sweep_eval:
+    official_val:
+      split: "val"
+      scenes: ["Warehouse_020", "Warehouse_021", "Warehouse_022"]
+    internal_holdout:
+      split: "train"
+      scenes: ["Warehouse_014", "Warehouse_015", "Warehouse_016"]
+  test_probe:
+    test:
+      split: "test"
+      scenes: ["Warehouse_023"]
+  full_test:
+    test:
+      split: "test"
+      scenes: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]
+
+sweep:
+  run_full_for_top_k: 2
+  full_all_variants: false
+  include_test_probe_in_phase_a: false
+
+variants:
+  bt_coverage_recover_low:
+    track_high_thresh: 0.25
+    track_low_thresh: 0.01
+    new_track_thresh: 0.30
+    match_thresh: 0.75
+    second_stage_match_thresh: 0.45
+    track_buffer: 60
+    min_confidence_for_input: 0.001
+  bt_coverage_balanced:
+    track_high_thresh: 0.25
+    track_low_thresh: 0.03
+    new_track_thresh: 0.30
+    match_thresh: 0.75
+    second_stage_match_thresh: 0.50
+    track_buffer: 60
+    min_confidence_for_input: 0.001
+  bt_coverage_high_buffer:
+    track_high_thresh: 0.30
+    track_low_thresh: 0.03
+    new_track_thresh: 0.35
+    match_thresh: 0.80
+    second_stage_match_thresh: 0.50
+    track_buffer: 90
+    min_confidence_for_input: 0.001
+  bt_coverage_low_new_track:
+    track_high_thresh: 0.25
+    track_low_thresh: 0.03
+    new_track_thresh: 0.20
+    match_thresh: 0.75
+    second_stage_match_thresh: 0.50
+    track_buffer: 60
+    min_confidence_for_input: 0.001
+  bt_coverage_second_stage_loose:
+    track_high_thresh: 0.30
+    track_low_thresh: 0.01
+    new_track_thresh: 0.30
+    match_thresh: 0.80
+    second_stage_match_thresh: 0.35
+    track_buffer: 60
+    min_confidence_for_input: 0.001
+  bt_coverage_dense:
+    track_high_thresh: 0.20
+    track_low_thresh: 0.01
+    new_track_thresh: 0.20
+    match_thresh: 0.70
+    second_stage_match_thresh: 0.35
+    track_buffer: 90
+    min_confidence_for_input: 0.001
+  bt_coverage_dense_safe:
+    track_high_thresh: 0.20
+    track_low_thresh: 0.01
+    new_track_thresh: 0.25
+    match_thresh: 0.75
+    second_stage_match_thresh: 0.40
+    track_buffer: 90
+    min_confidence_for_input: 0.001
+  bt_coverage_person_friendly:
+    track_high_thresh: 0.20
+    track_low_thresh: 0.01
+    new_track_thresh: 0.25
+    match_thresh: 0.75
+    second_stage_match_thresh: 0.40
+    track_buffer: 90
+    min_confidence_for_input: 0.001
+    person_specific:
+      enabled: true
+      class_id: 0
+      track_high_thresh: 0.20
+      track_low_thresh: 0.01
+      new_track_thresh: 0.20
+      match_thresh: 0.75
+      second_stage_match_thresh: 0.35
+      track_buffer: 90
+
+tracking:
+  class_agnostic_tracking: false
+  allow_cross_class_matching: false
+
+pipeline:
+  run_local_tracking: true
+  run_tracklets: true
+  run_candidates: true
+  run_motion_filtering: true
+  run_global_association: true
+  run_final_export: true
+  run_track1_export: true
+  run_validation: true
+
+selection:
+  min_local_records_retention: 0.85
+  min_gt_matched_retention: 0.90
+  min_track1_rows_retention: 0.75
+  min_multi_camera_tracks_retention: 0.60
+  max_allowed_purity_drop: 0.01
+  max_allowed_false_merge_rate_delta: 0.01
+  require_track1_errors_zero: true
+
+figures:
+  enabled: true
