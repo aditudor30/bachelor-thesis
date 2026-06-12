@@ -1,0 +1,95 @@
+person_association_pair_dataset:
+  name: "person_pairs_v1"
+  output_root: "output/learned_association/person_pairs_v1"
+  progress: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  v2_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  v2_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+  v2_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam"
+  v2_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+  v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  reid_finetuned_association_root: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam"
+  fragment_embeddings_npy: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam/embeddings/finetuned_fragment_embeddings.npy"
+  fragment_embeddings_index_csv: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam/embeddings/finetuned_fragment_embeddings_index.csv"
+
+splits:
+  train:
+    split_name: "train"
+    scenes:
+      - "Warehouse_000"
+      - "Warehouse_001"
+      - "Warehouse_002"
+      - "Warehouse_003"
+      - "Warehouse_004"
+      - "Warehouse_005"
+      - "Warehouse_006"
+      - "Warehouse_007"
+      - "Warehouse_008"
+      - "Warehouse_009"
+      - "Warehouse_010"
+      - "Warehouse_011"
+      - "Warehouse_012"
+      - "Warehouse_013"
+      - "Warehouse_014"
+      - "Warehouse_015"
+      - "Warehouse_016"
+      - "Warehouse_017"
+      - "Warehouse_018"
+      - "Warehouse_019"
+  val:
+    split_name: "val"
+    scenes:
+      - "Warehouse_020"
+      - "Warehouse_021"
+      - "Warehouse_022"
+
+fragment_source:
+  preferred_source: "motion_clean_candidates"
+  fallback_sources:
+    - "tracklets"
+    - "final_frame_records"
+    - "local_tracks"
+  class_id: 0
+  class_name: "Person"
+  min_fragment_length: 3
+  min_mean_confidence: 0.05
+
+gt_matching:
+  enabled: true
+  min_iou_for_gt_match: 0.3
+  min_gt_match_ratio: 0.3
+  min_gt_purity: 0.6
+  identity_format: "scene_object"
+
+pair_generation:
+  max_positive_pairs_per_identity: 100
+  max_negative_pairs_per_identity: 300
+  max_pairs_per_scene: 200000
+  hard_negative_top_k: 100
+  include_random_negatives: true
+  include_hard_negatives: true
+  include_same_scene_negatives: true
+  include_same_camera_negatives: true
+  include_cross_camera_negatives: true
+  negative_to_positive_ratio_balanced: 3
+  require_valid_reid_for_balanced: true
+
+features:
+  use_reid: true
+  use_temporal: true
+  use_camera_pair: true
+  use_geometry: true
+  use_motion: true
+  use_quality: true
+  use_conflict_flags: true
+
+conflict_thresholds:
+  large_spatial_gap: 50.0
+  large_temporal_gap: 900
+  low_quality_confidence: 0.1
+
+figures:
+  enabled: true
