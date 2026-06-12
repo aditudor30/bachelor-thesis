@@ -1,0 +1,103 @@
+bytetrack_lifecycle_audit:
+  name: "bytetrack_lifecycle_audit_21d"
+  output_root: "output/bytetrack_audit/baseline_v2_pseudo3d_fullcam"
+  progress: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+  yolo_pipeline_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+  v2_observations_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam/observations3d"
+
+  v2_current:
+    local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+    tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+    candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam"
+    motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+    global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+    final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+    track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+
+  bytetrack_21b:
+    local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+
+  bytetrack_21c_best:
+    variant_name: "bt_coverage_recover_low"
+    variant_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low"
+    comparison_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/comparison"
+    diagnostics_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/diagnostics"
+
+subsets:
+  audit_val:
+    val: ["Warehouse_020", "Warehouse_021", "Warehouse_022"]
+  audit_internal_holdout:
+    train: ["Warehouse_014", "Warehouse_015", "Warehouse_016"]
+  audit_test_probe_no_gt:
+    test: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]
+  contrast_scenes:
+    test: ["Warehouse_024", "Warehouse_025"]
+
+gt_audit:
+  enabled: true
+  splits: ["train", "val"]
+  min_iou_for_gt_match: 0.3
+  duration_buckets:
+    short_max_frames: 10
+    medium_max_frames: 50
+
+lifecycle_audit:
+  artifact_only: true
+  instrumented_mini_rerun_if_needed: true
+  instrumented_subset:
+    val: ["Warehouse_020"]
+    test: ["Warehouse_024", "Warehouse_025"]
+  max_cameras_per_scene_for_instrumented_rerun: 3
+  tracker_settings_by_variant:
+    bytetrack_21b:
+      track_high_thresh: 0.30
+      track_low_thresh: 0.05
+      new_track_thresh: 0.40
+      match_thresh: 0.80
+      second_stage_match_thresh: 0.50
+      track_buffer: 45
+      min_confidence_for_input: 0.001
+    bytetrack_21c_best:
+      track_high_thresh: 0.25
+      track_low_thresh: 0.01
+      new_track_thresh: 0.30
+      match_thresh: 0.75
+      second_stage_match_thresh: 0.45
+      track_buffer: 60
+      min_confidence_for_input: 0.001
+  tracker_settings:
+    track_high_thresh: 0.25
+    track_low_thresh: 0.01
+    new_track_thresh: 0.30
+    match_thresh: 0.75
+    second_stage_match_thresh: 0.45
+    track_buffer: 60
+    min_confidence_for_input: 0.001
+
+motion_filter_audit:
+  enabled: true
+  gap_buckets:
+    - [0, 1]
+    - [2, 5]
+    - [6, 15]
+    - [16, 30]
+    - [31, 999999]
+  compute_bbox_height_delta: true
+  compute_pseudo3d_jump_proxy: true
+
+samples:
+  enabled: true
+  max_samples_per_category: 50
+
+figures:
+  enabled: true
