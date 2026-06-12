@@ -13,6 +13,42 @@ from deep_oc_sort_3d.local_tracker_benchmark.local_track_metrics import compute_
 from deep_oc_sort_3d.tracking.track_io import read_local_tracks_csv
 
 
+LOCAL_TRACK_REQUIRED_FIELDS = {
+    "scene_id",
+    "scene_name",
+    "split",
+    "camera_id",
+    "frame_id",
+    "local_track_id",
+    "detection_id",
+    "class_id",
+    "class_name",
+    "confidence",
+    "x1",
+    "y1",
+    "x2",
+    "y2",
+    "w",
+    "h",
+    "track_age",
+    "track_hits",
+    "track_misses",
+    "track_state",
+}
+
+
+def is_local_track_csv(path: Path) -> bool:
+    """Return whether a CSV has the schema of a local-track output file."""
+    try:
+        with path.open("r", newline="", encoding="utf-8-sig") as handle:
+            reader = csv.reader(handle)
+            header = next(reader, [])
+    except (OSError, UnicodeError, csv.Error):
+        return False
+
+    return LOCAL_TRACK_REQUIRED_FIELDS.issubset(set(header))
+
+
 def compare_bytetrack_pipeline(config: Dict[str, Any]) -> Dict[str, Any]:
     """Build comprehensive comparison and honest final verdict."""
     paths = config.get("paths", {})
@@ -170,10 +206,19 @@ def collect_local_tracking_metrics(root: Path) -> Dict[str, Any]:
     person_lengths = []
     nonperson_lengths = []
     per_camera = []
+    files_read = 0
+    skipped_non_track_csv_files = 0
+    skipped_non_track_csv_samples = []
     for path in sorted(root.rglob("*.csv")) if root.exists() else []:
         if "summaries" in set(path.parts):
             continue
+        if not is_local_track_csv(path):
+            skipped_non_track_csv_files += 1
+            if len(skipped_non_track_csv_samples) < 10:
+                skipped_non_track_csv_samples.append(str(path))
+            continue
         records = read_local_tracks_csv(path)
+        files_read += 1
         rows = [_record_row(record, root, path) for record in records]
         metric = compute_track_metrics(rows)
         gt = compute_gt_diagnostics(rows)
@@ -218,6 +263,9 @@ def collect_local_tracking_metrics(root: Path) -> Dict[str, Any]:
         "person_median_track_length": _percentile(person_lengths, 50),
         "non_person_mean_track_length": _mean(nonperson_lengths),
         "non_person_median_track_length": _percentile(nonperson_lengths, 50),
+        "files_read": files_read,
+        "skipped_non_track_csv_files": skipped_non_track_csv_files,
+        "skipped_non_track_csv_samples": skipped_non_track_csv_samples,
         "per_camera": per_camera,
     }
 
