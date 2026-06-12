@@ -49,7 +49,11 @@ def load_person_fragments(
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """Load and normalize Person fragments from the selected source."""
     source_name, source_root = choose_fragment_source(config)
-    scenes = configured_scenes(config, debug_limit_scenes)
+    scenes = configured_scenes(config, None)
+    if debug_limit_scenes is not None:
+        scenes = select_debug_scenes_with_files(
+            scenes, source_root, source_name, debug_limit_scenes
+        )
     fragments = []  # type: List[Dict[str, Any]]
     file_counts = {}  # type: Dict[str, int]
     warnings = []  # type: List[str]
@@ -96,6 +100,16 @@ def discover_scene_files(
     root: Path, split: str, scene_name: str, source_name: str
 ) -> List[Path]:
     """Discover source files for one scene, preferring JSONL over CSV twins."""
+    if source_name == "motion_clean_candidates":
+        jsonl_files = _matching_files(root, "*_clean_candidates.jsonl", scene_name)
+        if jsonl_files:
+            return jsonl_files
+        return _matching_files(root, "*_clean_candidates.csv", scene_name)
+    if source_name == "tracklets":
+        jsonl_files = _matching_files(root, "*tracklet*.jsonl", scene_name)
+        if jsonl_files:
+            return jsonl_files
+        return _matching_files(root, "*tracklet*.csv", scene_name)
     candidates = []  # type: List[Path]
     for suffix in ("*.jsonl", "*.csv"):
         for path in root.rglob(suffix):
@@ -115,6 +129,38 @@ def discover_scene_files(
         if current is None or path.suffix.lower() == ".jsonl":
             by_key[key] = path
     return sorted(by_key.values())
+
+
+def select_debug_scenes_with_files(
+    scenes: Sequence[Dict[str, str]],
+    source_root: Path,
+    source_name: str,
+    limit_per_split: int,
+) -> List[Dict[str, str]]:
+    """Select the first available debug scenes instead of empty configured scenes."""
+    selected = []  # type: List[Dict[str, str]]
+    counts = {}  # type: Dict[str, int]
+    for scene in scenes:
+        split = scene["split"]
+        if counts.get(split, 0) >= max(0, limit_per_split):
+            continue
+        files = discover_scene_files(
+            source_root, split, scene["scene_name"], source_name
+        )
+        if not files:
+            continue
+        selected.append(scene)
+        counts[split] = counts.get(split, 0) + 1
+    return selected
+
+
+def _matching_files(root: Path, pattern: str, scene_name: str) -> List[Path]:
+    """Return files matching both the canonical filename and scene name."""
+    return sorted(
+        path
+        for path in root.rglob(pattern)
+        if scene_name in str(path).replace("\\", "/")
+    )
 
 
 def load_scene_fragments(

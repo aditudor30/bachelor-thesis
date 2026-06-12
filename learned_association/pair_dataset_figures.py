@@ -43,7 +43,8 @@ def _histogram(plt: Any, pairs: Sequence[Dict[str, Any]], feature: str, path: Pa
     axis.set_title(feature.replace("_", " ").title())
     axis.set_xlabel(feature)
     axis.set_ylabel("density")
-    axis.legend()
+    if positives or negatives:
+        axis.legend()
     figure.tight_layout()
     figure.savefig(str(path), dpi=160)
     plt.close(figure)
@@ -66,6 +67,13 @@ def _camera_heatmap(plt: Any, pairs: Sequence[Dict[str, Any]], path: Path) -> No
             if camera_a != camera_b:
                 matrix[index[camera_b], index[camera_a]] += 1
     figure, axis = plt.subplots(figsize=(10, 8))
+    if not cameras:
+        axis.text(0.5, 0.5, "No camera pairs available", ha="center", va="center")
+        axis.set_axis_off()
+        figure.tight_layout()
+        figure.savefig(str(path), dpi=160)
+        plt.close(figure)
+        return
     image = axis.imshow(matrix, aspect="auto", interpolation="nearest")
     axis.set_xticks(range(len(cameras)))
     axis.set_yticks(range(len(cameras)))

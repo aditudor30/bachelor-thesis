@@ -45,8 +45,14 @@ def normalize_fragment_record(
     observations = build_observations(trajectory_2d, trajectory_3d)
     frame_ids = [safe_int(item.get("frame_id")) for item in observations]
     frame_ids = [value for value in frame_ids if value is not None]
-    frame_start = safe_int(record.get("frame_start"), min(frame_ids) if frame_ids else None)
-    frame_end = safe_int(record.get("frame_end"), max(frame_ids) if frame_ids else frame_start)
+    frame_start = safe_int(
+        record.get("frame_start") if record.get("frame_start") is not None else record.get("start_frame"),
+        min(frame_ids) if frame_ids else None,
+    )
+    frame_end = safe_int(
+        record.get("frame_end") if record.get("frame_end") is not None else record.get("end_frame"),
+        max(frame_ids) if frame_ids else frame_start,
+    )
     length = safe_int(
         record.get("length") or record.get("num_observations"),
         len(observations) if observations else _duration(frame_start, frame_end),
@@ -54,8 +60,12 @@ def normalize_fragment_record(
 
     bbox_values = [item["bbox_xyxy"] for item in observations if item.get("bbox_xyxy") is not None]
     point_values = [item["center_3d"] for item in observations if item.get("center_3d") is not None]
+    if not bbox_values:
+        bbox_values = _record_bboxes(record)
     bbox_stats = summarize_bboxes(bbox_values)
     motion_stats = summarize_points(point_values, frame_ids_from_observations(observations))
+    motion_stats.update(_record_point_features(record, motion_stats))
+    gt_counts = _gt_counts(record)
     mean_confidence = safe_float(record.get("mean_confidence"), 0.0)
     median_confidence = safe_float(record.get("median_confidence"), mean_confidence)
     min_confidence = safe_float(record.get("min_confidence"), mean_confidence)
@@ -114,7 +124,12 @@ def normalize_fragment_record(
         "_embedding": None,
         "_pipeline_gt_object_id": record.get("majority_gt_object_id"),
         "_pipeline_gt_purity": safe_float(record.get("gt_purity")),
-        "_pipeline_gt_match_count": safe_int(record.get("gt_match_count")),
+        "_pipeline_gt_match_count": (
+            sum(gt_counts.values())
+            if gt_counts
+            else safe_int(record.get("gt_match_count"))
+        ),
+        "_pipeline_gt_counts": gt_counts,
     }
     return normalized
 
@@ -251,6 +266,83 @@ def frame_ids_from_observations(observations: Sequence[Dict[str, Any]]) -> List[
 def _parse_trajectory(value: Any) -> List[List[Any]]:
     parsed = parse_list(value)
     return [list(item) for item in parsed if isinstance(item, (list, tuple))]
+
+
+def _record_bboxes(record: Dict[str, Any]) -> List[List[float]]:
+    """Read compact candidate bbox summaries when trajectories are unavailable."""
+    result = []
+    for key in ("bbox_start", "bbox_end", "bbox_mean"):
+        values = parse_list(record.get(key))
+        parsed = [safe_float(value) for value in values[:4]]
+        if len(parsed) == 4 and all(value is not None for value in parsed):
+            result.append([float(value) for value in parsed if value is not None])
+    return result
+
+
+def _record_point_features(
+    record: Dict[str, Any], existing: Dict[str, Optional[float]]
+) -> Dict[str, Optional[float]]:
+    """Read compact candidate center and velocity vectors."""
+    result = dict(existing)
+    vector_fields = {
+        "start": ("center_3d_start", "entry_center_3d"),
+        "end": ("center_3d_end", "exit_center_3d"),
+        "mean": ("center_3d_mean",),
+    }
+    for suffix, keys in vector_fields.items():
+        vector = _first_vector(record, keys)
+        if vector is None:
+            continue
+        for axis, value in zip(("x", "y", "z"), vector):
+            result.setdefault("center_%s_%s" % (axis, suffix), value)
+    velocity = _first_vector(record, ("mean_velocity_3d", "velocity_3d"))
+    if velocity is not None:
+        for axis, value in zip(("x", "y", "z"), velocity):
+            result.setdefault("velocity_%s" % axis, value)
+        result.setdefault("speed_mean", float(np.linalg.norm(np.asarray(velocity))))
+    aliases = {
+        "step_p95": "p95_step_distance_3d",
+        "step_max": "max_step_distance_3d",
+        "speed_mean": "mean_speed_3d",
+    }
+    for target, source in aliases.items():
+        value = safe_float(record.get(source))
+        if value is not None:
+            result.setdefault(target, value)
+    return result
+
+
+def _first_vector(
+    record: Dict[str, Any], keys: Sequence[str]
+) -> Optional[List[float]]:
+    for key in keys:
+        values = parse_list(record.get(key))
+        parsed = [safe_float(value) for value in values[:3]]
+        if len(parsed) == 3 and all(value is not None for value in parsed):
+            return [float(value) for value in parsed if value is not None]
+    return None
+
+
+def _gt_counts(record: Dict[str, Any]) -> Dict[str, int]:
+    """Read per-GT observation counts from JSONL or compact CSV records."""
+    value = record.get("gt_id_counts")
+    if not isinstance(value, dict):
+        raw = record.get("gt_id_counts_json")
+        if isinstance(raw, str) and raw:
+            try:
+                import json
+
+                value = json.loads(raw)
+            except (TypeError, ValueError):
+                value = {}
+    if not isinstance(value, dict):
+        return {}
+    result = {}
+    for key, item in value.items():
+        count = safe_int(item)
+        if count is not None and count > 0:
+            result[str(key)] = count
+    return result
 
 
 def _first_text(record: Dict[str, Any], keys: Sequence[str]) -> str:
