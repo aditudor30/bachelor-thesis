@@ -1,0 +1,88 @@
+person_association_scorer:
+  name: "person_scorer_v1"
+  output_root: "output/learned_association/person_scorer_v1"
+  progress: true
+  random_seed: 42
+
+paths:
+  pair_dataset_root: "output/learned_association/person_pairs_v1"
+  train_pairs_csv: "output/learned_association/person_pairs_v1/pairs/train_pairs_balanced.csv"
+  val_pairs_csv: "output/learned_association/person_pairs_v1/pairs/val_pairs_balanced.csv"
+  raw_train_pairs_csv: "output/learned_association/person_pairs_v1/pairs/train_pairs.csv"
+  raw_val_pairs_csv: "output/learned_association/person_pairs_v1/pairs/val_pairs.csv"
+
+features:
+  use_reid: true
+  use_temporal: true
+  use_camera_pair: true
+  use_geometry: true
+  use_motion: true
+  use_quality: true
+  use_conflict_flags: true
+  camera_pair_encoding: "one_hot"
+  missing_value_strategy: "median"
+  scale_continuous_features: true
+
+models:
+  train_reid_only_baseline: true
+  train_logistic_regression: true
+  train_gradient_boosting: true
+  train_random_forest: true
+  train_mlp: true
+  sklearn_optional: true
+  class_weight: "balanced"
+  logistic_c: 1.0
+  logistic_max_iter: 1000
+  gradient_boosting_estimators: 150
+  gradient_boosting_learning_rate: 0.05
+  gradient_boosting_max_depth: 3
+  random_forest_estimators: 200
+  random_forest_max_depth: 12
+  random_forest_min_samples_leaf: 2
+  random_forest_n_jobs: -1
+
+mlp:
+  hidden_dims:
+    - 128
+    - 64
+  dropout: 0.2
+  batch_norm: false
+  layer_norm: true
+  batch_size: 256
+  epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  early_stop_patience: 8
+  monitor_metric: "val_pr_auc"
+  device: "cuda"
+  use_amp: false
+  auto_positive_class_weight: false
+  positive_class_weight: 1.0
+
+evaluation:
+  thresholds:
+    - 0.50
+    - 0.55
+    - 0.60
+    - 0.65
+    - 0.70
+    - 0.75
+    - 0.80
+    - 0.85
+    - 0.90
+    - 0.95
+  strict_min_precision: 0.95
+  very_strict_min_precision: 0.98
+  max_false_positive_rate_strict: 0.02
+  evaluate_per_scene: true
+  evaluate_per_camera_pair: true
+  evaluate_hard_negatives: true
+
+selection:
+  prefer_high_precision: true
+  min_pr_auc_gain_over_reid: 0.02
+  max_allowed_hard_negative_fpr: 0.02
+  require_better_than_reid_only: true
+
+figures:
+  enabled: true
