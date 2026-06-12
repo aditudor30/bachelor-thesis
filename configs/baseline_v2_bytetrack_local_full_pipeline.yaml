@@ -92,6 +92,10 @@ validation:
 selection:
   max_allowed_purity_drop: 0.01
   max_allowed_false_merge_rate_delta: 0.01
+  min_track1_row_retention: 0.75
+  min_local_record_retention: 0.75
+  min_gt_matched_record_retention: 0.75
+  min_multi_camera_track_retention: 0.50
   require_track1_valid: true
   prefer_lower_fragmentation: true
   prefer_stable_non_person: true

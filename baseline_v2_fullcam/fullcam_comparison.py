@@ -65,6 +65,12 @@ def collect_run_metrics(paths: Dict[str, Any]) -> Dict[str, Any]:
             track1_root / "validation.json",
         ]
     )
+    validation_distribution = validation.get("distribution", {})
+    if not isinstance(validation_distribution, dict):
+        validation_distribution = {}
+    validation_checks = validation.get("checks", {})
+    if not isinstance(validation_checks, dict):
+        validation_checks = {}
     global_summary = _aggregate_global_summaries(global_root)
     final_summary = _final_export_summary(final_root)
     return {
@@ -82,10 +88,22 @@ def collect_run_metrics(paths: Dict[str, Any]) -> Dict[str, Any]:
             "rows": _line_count(track1_root / "track1.txt"),
             "validation_errors": validation.get("num_errors"),
             "validation_status": validation.get("status"),
-            "duplicate_key_count": validation.get("duplicate_key_count"),
-            "sorting_issues": validation.get("sorting_issues"),
-            "per_scene_rows": validation.get("per_scene_rows", {}),
-            "per_class_rows": validation.get("per_class_rows", {}),
+            "duplicate_key_count": validation.get(
+                "duplicate_key_count",
+                validation_checks.get("duplicate_key_count"),
+            ),
+            "sorting_issues": validation.get(
+                "sorting_issues",
+                validation_checks.get("sorting_issues"),
+            ),
+            "per_scene_rows": validation.get(
+                "per_scene_rows",
+                validation_distribution.get("per_scene_rows", {}),
+            ),
+            "per_class_rows": validation.get(
+                "per_class_rows",
+                validation_distribution.get("per_class_rows", {}),
+            ),
         },
     }
 

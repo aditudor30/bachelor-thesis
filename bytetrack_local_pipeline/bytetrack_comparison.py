@@ -139,6 +139,45 @@ def decide_final_verdict(
     if errors not in (0, "0"):
         return {"label": "baseline_v2_bytetrack_local_invalid_fix_required", "reasons": ["track1_validation_errors"]}
     selection = config.get("selection", {})
+    coverage_checks = [
+        (
+            "track1_row_retention_below_minimum",
+            _nested(candidate, ["track1", "rows"]),
+            _nested(current, ["track1", "rows"]),
+            float(selection.get("min_track1_row_retention", 0.75)),
+        ),
+        (
+            "local_record_retention_below_minimum",
+            _nested(candidate, ["local_tracking", "num_records"]),
+            _nested(current, ["local_tracking", "num_records"]),
+            float(selection.get("min_local_record_retention", 0.75)),
+        ),
+        (
+            "gt_matched_record_retention_below_minimum",
+            _nested(candidate, ["local_tracking", "gt_matched_records"]),
+            _nested(current, ["local_tracking", "gt_matched_records"]),
+            float(selection.get("min_gt_matched_record_retention", 0.75)),
+        ),
+        (
+            "multi_camera_track_retention_below_minimum",
+            _nested(candidate, ["global_association", "multi_camera_tracks"]),
+            _nested(current, ["global_association", "multi_camera_tracks"]),
+            float(selection.get("min_multi_camera_track_retention", 0.50)),
+        ),
+    ]
+    coverage_failures = []
+    coverage_retention = {}
+    for reason, candidate_value, current_value, minimum in coverage_checks:
+        retention = _retention(candidate_value, current_value)
+        coverage_retention[reason] = retention
+        if retention is not None and retention < minimum:
+            coverage_failures.append(reason)
+    if coverage_failures:
+        return {
+            "label": "baseline_v2_bytetrack_local_valid_but_coverage_too_low",
+            "reasons": coverage_failures,
+            "coverage_retention": coverage_retention,
+        }
     purity_delta = deltas.get("global_purity_mean_delta")
     false_delta = deltas.get("false_merge_rate_delta")
     if purity_delta is not None and purity_delta < -float(selection.get("max_allowed_purity_drop", 0.01)):
@@ -344,6 +383,16 @@ def _nested(data: Dict[str, Any], path: Sequence[str]) -> Any:
 def _delta(left: Any, right: Any) -> Optional[float]:
     try:
         return float(right) - float(left)
+    except (TypeError, ValueError):
+        return None
+
+
+def _retention(candidate: Any, baseline: Any) -> Optional[float]:
+    try:
+        baseline_value = float(baseline)
+        if baseline_value <= 0.0:
+            return None
+        return float(candidate) / baseline_value
     except (TypeError, ValueError):
         return None
 
