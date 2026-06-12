@@ -1,0 +1,100 @@
+baseline_v2_bytetrack_local:
+  name: "baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  progress: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/path/to/MTMC_Tracking_2026"
+  yolo_pipeline_root: "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+  v2_observations_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam/observations3d"
+  pseudo3d_predictions_root: "output/pseudo3d/baseline_v2_pseudo3d_fullcam/predictions_stabilized"
+  current_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+  output_precheck_root: "output/baseline_v2_pseudo3d_fullcam_bytetrack_local_precheck"
+  output_local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  output_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  output_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  output_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  output_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  output_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  output_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  output_package_root: "output/submission_packages/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  output_comparison_root: "output/baseline_v2_pseudo3d_fullcam_bytetrack_local_comparison"
+  baseline_v1_local_tracks_root: "output/local_tracks/yolo11m_medium_conf001"
+  baseline_v1_tracklets_root: "output/tracklets/yolo11m_medium_conf001_mid"
+  baseline_v1_candidates_root: "output/mtmc_candidates/yolo11m_medium_conf001"
+  baseline_v1_motion_clean_root: "output/mtmc_candidates_motion_clean/yolo11m_medium_conf001_mid_dense"
+  baseline_v1_global_root: "output/global_mtmc_transition/yolo11m_medium_conf001_transition"
+  baseline_v1_final_export_root: "output/final_mvp_exports/yolo11m_medium_conf001_transition"
+  baseline_v1_track1_root: "output/track1_submission/yolo11m_medium_conf001_transition"
+  baseline_v2_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+  baseline_v2_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  combined_safe_root: "output/person_reid_finetuned_association/baseline_v2_pseudo3d_fullcam"
+
+precheck:
+  enabled: true
+  require_pass_before_full_rerun: true
+  official_val:
+    split: "val"
+    scenes: ["Warehouse_020", "Warehouse_021", "Warehouse_022"]
+  internal_holdout:
+    split: "train"
+    scenes: ["Warehouse_014", "Warehouse_015", "Warehouse_016"]
+  test_probe:
+    split: "test"
+    scenes: ["Warehouse_023"]
+
+full_rerun:
+  enabled: true
+  run_if_precheck_passes: true
+  subsets:
+    official_val:
+      split: "val"
+      scenes: ["Warehouse_020", "Warehouse_021", "Warehouse_022"]
+    internal_holdout:
+      split: "train"
+      scenes: ["Warehouse_014", "Warehouse_015", "Warehouse_016"]
+    test:
+      split: "test"
+      scenes: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]
+
+bytetrack_style:
+  min_confidence_for_input: 0.001
+  track_high_thresh: 0.3
+  track_low_thresh: 0.05
+  new_track_thresh: 0.4
+  match_thresh: 0.8
+  second_stage_match_thresh: 0.5
+  track_buffer: 45
+  class_agnostic_tracking: false
+  allow_cross_class_matching: false
+
+tracklets:
+  use_existing_builder: true
+candidates:
+  use_existing_builder: true
+motion_filtering:
+  use_existing_filter: true
+global_association:
+  mode: "overlap_transition"
+  use_reid: false
+  use_existing_association: true
+
+validation:
+  require_track1_errors_zero: true
+  compare_with_baseline_v1: true
+  compare_with_baseline_v2_current: true
+  compare_with_combined_safe_080: true
+
+selection:
+  max_allowed_purity_drop: 0.01
+  max_allowed_false_merge_rate_delta: 0.01
+  require_track1_valid: true
+  prefer_lower_fragmentation: true
+  prefer_stable_non_person: true
+
+figures:
+  enabled: true

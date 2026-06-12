@@ -11,6 +11,7 @@ from deep_oc_sort_3d.local_tracker_benchmark.tracker_input_types import Benchmar
 def inventory_detection_files(
     pipeline_root: Path,
     scene_selection: Sequence[Tuple[str, str, str]],
+    observations_root: Optional[Path] = None,
 ) -> Tuple[List[Dict[str, Any]], List[str]]:
     """Inventory available per-camera detection CSV files."""
     rows = []
@@ -21,6 +22,11 @@ def inventory_detection_files(
         if not files:
             warnings.append("missing detections for %s/%s" % (subset, scene_name))
         for path in files:
+            observation_base = (
+                Path(observations_root)
+                if observations_root is not None
+                else Path(pipeline_root) / "observations3d"
+            )
             rows.append(
                 {
                     "subset": subset,
@@ -28,7 +34,7 @@ def inventory_detection_files(
                     "scene_name": scene_name,
                     "camera_id": path.stem,
                     "detections_path": str(path),
-                    "observations_path": str(Path(pipeline_root) / "observations3d" / subset / scene_name / (path.stem + ".jsonl")),
+                    "observations_path": str(observation_base / subset / scene_name / (path.stem + ".jsonl")),
                 }
             )
     return rows, warnings

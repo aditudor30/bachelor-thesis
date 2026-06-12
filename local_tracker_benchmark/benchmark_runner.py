@@ -58,7 +58,13 @@ def run_local_tracker_benchmark(
     _write_yaml(root / "configs" / "resolved_config.yaml", config)
     scene_selection = resolve_scene_selection(config, subset_name)
     pipeline_root = _resolve_pipeline_root(config, scene_selection)
-    inventory, warnings = inventory_detection_files(pipeline_root, scene_selection)
+    observations_root_value = config.get("paths", {}).get("observations_root")
+    observations_root = None if observations_root_value in (None, "") else Path(str(observations_root_value))
+    inventory, warnings = inventory_detection_files(
+        pipeline_root,
+        scene_selection,
+        observations_root=observations_root,
+    )
     warnings.append("current_local_tracker runtime measures existing-output loading/copying, not original tracking runtime")
     write_json(root / "inputs" / "detection_inventory.json", {"pipeline_root": str(pipeline_root), "files": inventory})
     write_csv_rows(root / "inputs" / "scene_camera_inventory.csv", inventory)
