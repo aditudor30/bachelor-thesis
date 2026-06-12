@@ -13,15 +13,27 @@ def select_threshold_labels(
     strict_precision = float(evaluation_config.get("strict_min_precision", 0.95))
     very_strict_precision = float(evaluation_config.get("very_strict_min_precision", 0.98))
     max_fpr = float(evaluation_config.get("max_false_positive_rate_strict", 0.02))
+    strict_min_tp = int(evaluation_config.get("strict_min_true_positives", 50))
+    strict_min_recall = float(evaluation_config.get("strict_min_recall", 0.01))
+    very_strict_min_tp = int(evaluation_config.get("very_strict_min_true_positives", 10))
+    very_strict_min_recall = float(evaluation_config.get("very_strict_min_recall", 0.002))
     exploratory = max(rows, key=lambda row: _value(row.get("recall"), -1.0))
     balanced = max(rows, key=lambda row: _value(row.get("f1"), -1.0))
-    strict = _strict_choice(rows, strict_precision, max_fpr)
-    very_strict = _strict_choice(rows, very_strict_precision, min(max_fpr, 0.01))
+    strict, strict_met = _strict_choice(
+        rows, strict_precision, max_fpr, strict_min_tp, strict_min_recall
+    )
+    very_strict, very_strict_met = _strict_choice(
+        rows,
+        very_strict_precision,
+        min(max_fpr, 0.01),
+        very_strict_min_tp,
+        very_strict_min_recall,
+    )
     return {
-        "exploratory": _compact(exploratory),
-        "balanced": _compact(balanced),
-        "strict": _compact(strict),
-        "very_strict": _compact(very_strict),
+        "exploratory": _compact(exploratory, True),
+        "balanced": _compact(balanced, True),
+        "strict": _compact(strict, strict_met),
+        "very_strict": _compact(very_strict, very_strict_met),
     }
 
 
@@ -37,6 +49,8 @@ def select_model_conservatively(
     min_gain = float(selection_config.get("min_pr_auc_gain_over_reid", 0.02))
     max_hard_fpr = float(selection_config.get("max_allowed_hard_negative_fpr", 0.02))
     require_gain = bool(selection_config.get("require_better_than_reid_only", True))
+    min_tp = int(selection_config.get("min_strict_true_positives", 50))
+    min_recall = float(selection_config.get("min_strict_recall", 0.01))
 
     ranked = []  # type: List[Any]
     for model_name, evaluation in model_evaluations.items():
@@ -48,12 +62,16 @@ def select_model_conservatively(
         precision = _value(strict.get("precision"), 0.0)
         fpr = _value(strict.get("false_positive_rate"), 1.0)
         recall = _value(strict.get("recall"), 0.0)
+        true_positives = int(strict.get("tp") or 0)
+        target_met = bool(strict.get("target_met", False))
         hard_value = _value(hard_fpr, 1.0)
-        eligible = hard_value <= max_hard_fpr
+        support_ok = true_positives >= min_tp and recall >= min_recall
+        eligible = hard_value <= max_hard_fpr and support_ok
         if model_name != "reid_only_baseline" and require_gain:
             eligible = eligible and pr_auc >= reid_pr_auc + min_gain
         rank = (
             1 if eligible else 0,
+            1 if target_met else 0,
             precision,
             -fpr,
             -hard_value,
@@ -107,6 +125,7 @@ def scorer_verdict(
     strict = selected.get("selected_thresholds", {}).get("strict", {})
     precision = _value(strict.get("precision"), 0.0)
     fpr = _value(strict.get("false_positive_rate"), 1.0)
+    strict_target_met = bool(strict.get("target_met", False))
     reid_pr = _value(
         model_evaluations.get("reid_only_baseline", {}).get("overall_metrics", {}).get("pr_auc"),
         0.0,
@@ -123,7 +142,7 @@ def scorer_verdict(
         }
     strict_min = float(config.get("evaluation", {}).get("strict_min_precision", 0.95))
     max_fpr = float(config.get("evaluation", {}).get("max_false_positive_rate_strict", 0.02))
-    if precision >= strict_min and fpr <= max_fpr:
+    if strict_target_met and precision >= strict_min and fpr <= max_fpr:
         return {
             "verdict": "person_scorer_ready_for_conservative_association",
             "ready_for_step_20c": True,
@@ -134,39 +153,57 @@ def scorer_verdict(
         "verdict": "person_scorer_promising_needs_threshold_tuning",
         "ready_for_step_20c": True,
         "selected_model": selected_name,
-        "reasons": reasons + ["strict_precision_or_fpr_target_not_met"],
+        "reasons": reasons
+        + ["strict_precision_fpr_or_minimum_support_target_not_met"],
     }
 
 
 def _strict_choice(
-    rows: Sequence[Dict[str, Any]], min_precision: float, max_fpr: float
-) -> Dict[str, Any]:
-    eligible = [
+    rows: Sequence[Dict[str, Any]],
+    min_precision: float,
+    max_fpr: float,
+    min_true_positives: int,
+    min_recall: float,
+) -> Any:
+    supported = [
         row
         for row in rows
+        if int(row.get("tp") or 0) >= int(min_true_positives)
+        and _value(row.get("recall"), 0.0) >= float(min_recall)
+    ]
+    eligible = [
+        row
+        for row in supported
         if _value(row.get("precision"), 0.0) >= min_precision
         and _value(row.get("false_positive_rate"), 1.0) <= max_fpr
     ]
     if eligible:
-        return max(
-            eligible,
-            key=lambda row: (
-                _value(row.get("recall"), 0.0),
-                _value(row.get("precision"), 0.0),
-                -float(row.get("threshold", 0.0)),
+        return (
+            max(
+                eligible,
+                key=lambda row: (
+                    _value(row.get("recall"), 0.0),
+                    _value(row.get("precision"), 0.0),
+                    -float(row.get("threshold", 0.0)),
+                ),
             ),
+            True,
         )
-    return max(
-        rows,
-        key=lambda row: (
-            _value(row.get("precision"), 0.0),
-            -_value(row.get("false_positive_rate"), 1.0),
-            _value(row.get("recall"), 0.0),
+    fallback_rows = supported if supported else list(rows)
+    return (
+        max(
+            fallback_rows,
+            key=lambda row: (
+                _value(row.get("precision"), 0.0),
+                -_value(row.get("false_positive_rate"), 1.0),
+                _value(row.get("recall"), 0.0),
+            ),
         ),
+        False,
     )
 
 
-def _compact(row: Dict[str, Any]) -> Dict[str, Any]:
+def _compact(row: Dict[str, Any], target_met: bool) -> Dict[str, Any]:
     keys = (
         "threshold",
         "precision",
@@ -179,7 +216,9 @@ def _compact(row: Dict[str, Any]) -> Dict[str, Any]:
         "tn",
         "fn",
     )
-    return {key: row.get(key) for key in keys}
+    result = {key: row.get(key) for key in keys}
+    result["target_met"] = bool(target_met)
+    return result
 
 
 def _value(value: Optional[Any], default: float) -> float:

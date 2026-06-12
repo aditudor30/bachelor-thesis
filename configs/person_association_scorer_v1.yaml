@@ -74,6 +74,15 @@ evaluation:
   strict_min_precision: 0.95
   very_strict_min_precision: 0.98
   max_false_positive_rate_strict: 0.02
+  strict_min_true_positives: 50
+  strict_min_recall: 0.01
+  very_strict_min_true_positives: 10
+  very_strict_min_recall: 0.002
+  threshold_search_min: 0.50
+  threshold_search_max: 0.95
+  reid_threshold_search_min: 0.60
+  reid_threshold_search_max: 0.90
+  threshold_search_step: 0.01
   evaluate_per_scene: true
   evaluate_per_camera_pair: true
   evaluate_hard_negatives: true
@@ -82,6 +91,8 @@ selection:
   prefer_high_precision: true
   min_pr_auc_gain_over_reid: 0.02
   max_allowed_hard_negative_fpr: 0.02
+  min_strict_true_positives: 50
+  min_strict_recall: 0.01
   require_better_than_reid_only: true
 
 figures:

@@ -109,9 +109,6 @@ def train_all_scorers(
     """Train enabled models and evaluate all of them on validation pairs."""
     seed_everything(random_seed(config))
     data = prepare_training_data(config, output_root, progress)
-    thresholds = [float(value) for value in config.get("evaluation", {}).get("thresholds", [])]
-    if not thresholds:
-        thresholds = [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
     reid_thresholds = [0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
     write_json(output_root / "models" / "reid_only_baseline.json", reid_model_payload(reid_thresholds))
 
@@ -361,7 +358,7 @@ def evaluate_score_map(
 ) -> Dict[str, Any]:
     """Evaluate scores, select thresholds/model and write core artifacts."""
     evaluation_config = config.get("evaluation", {})
-    default_thresholds = [float(value) for value in evaluation_config.get("thresholds", [])]
+    default_thresholds = configured_thresholds(evaluation_config, reid=False)
     evaluations = {}  # type: Dict[str, Dict[str, Any]]
     all_sweep_rows = []  # type: List[Dict[str, Any]]
     comparison_rows = []  # type: List[Dict[str, Any]]
@@ -374,7 +371,7 @@ def evaluate_score_map(
         score_items, "evaluation and threshold sweep", progress, len(score_items)
     ):
         thresholds = (
-            [0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
+            configured_thresholds(evaluation_config, reid=True)
             if model_name == "reid_only_baseline"
             else default_thresholds
         )
@@ -459,6 +456,28 @@ def evaluate_score_map(
         "labels": labels,
         "metadata": metadata,
     }
+
+
+def configured_thresholds(
+    evaluation_config: Dict[str, Any], reid: bool = False
+) -> List[float]:
+    """Merge report thresholds with a dense grid used for selection."""
+    fixed = [float(value) for value in evaluation_config.get("thresholds", [])]
+    if reid:
+        minimum = float(evaluation_config.get("reid_threshold_search_min", 0.60))
+        maximum = float(evaluation_config.get("reid_threshold_search_max", 0.90))
+    else:
+        minimum = float(evaluation_config.get("threshold_search_min", 0.50))
+        maximum = float(evaluation_config.get("threshold_search_max", 0.95))
+    step = float(evaluation_config.get("threshold_search_step", 0.01))
+    if step <= 0.0:
+        raise ValueError("threshold_search_step must be positive")
+    dense = []
+    value = minimum
+    while value <= maximum + 1e-9:
+        dense.append(round(value, 6))
+        value += step
+    return sorted(set(fixed + dense))
 
 
 def seed_everything(seed: int) -> None:
