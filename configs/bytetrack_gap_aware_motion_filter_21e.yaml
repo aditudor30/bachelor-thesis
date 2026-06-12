@@ -1,0 +1,126 @@
+bytetrack_gap_aware_motion_filter:
+  name: "bytetrack_gap_aware_motion_filter_21e"
+  output_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam"
+  progress: true
+  random_seed: 42
+
+paths:
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+  v2_observations_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam/observations3d"
+  bytetrack_21c_best_variant_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low"
+  bytetrack_21c_best_candidates_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low/candidates"
+  audit_21d_root: "output/bytetrack_audit/baseline_v2_pseudo3d_fullcam"
+
+  baseline_v2_current:
+    local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam"
+    tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam"
+    candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam"
+    motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam"
+    global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+    final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+    track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+
+  bytetrack_21b:
+    local_tracks_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    motion_clean_root: "output/mtmc_candidates_motion_clean/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    global_root: "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    final_export_root: "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+    track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+
+  bytetrack_21c_best:
+    local_tracks_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low/local_tracks"
+    tracklets_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low/tracklets"
+    candidates_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low/candidates"
+    motion_clean_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low/motion_clean"
+    global_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low/global_mtmc"
+    final_export_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low/final_export"
+    track1_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low/track1_submission"
+
+subsets:
+  official_val:
+    split: "val"
+    scenes: ["Warehouse_020", "Warehouse_021", "Warehouse_022"]
+  internal_holdout:
+    split: "train"
+    scenes: ["Warehouse_014", "Warehouse_015", "Warehouse_016"]
+  test:
+    split: "test"
+    scenes: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]
+
+velocity_priors:
+  estimate_from_gt_train_val: true
+  estimate_from_clean_tracks_if_gt_missing: true
+  percentile_for_vmax: 95
+  margin_scale: 1.0
+  min_samples_per_class: 100
+  fallback_velocity_priors:
+    Person: {v_max: 3.0, margin: 1.5, absolute_cap: 12.0}
+    Forklift: {v_max: 5.0, margin: 2.0, absolute_cap: 18.0}
+    PalletTruck: {v_max: 4.0, margin: 2.0, absolute_cap: 15.0}
+    Transporter: {v_max: 5.0, margin: 2.0, absolute_cap: 18.0}
+    FourierGR1T2: {v_max: 3.0, margin: 1.5, absolute_cap: 12.0}
+    AgilityDigit: {v_max: 3.0, margin: 1.5, absolute_cap: 12.0}
+    NovaCarter: {v_max: 4.0, margin: 2.0, absolute_cap: 15.0}
+
+current_motion_quality_config: "deep_oc_sort_3d/configs/mtmc_motion_quality_medium_conf001.yaml"
+
+variants:
+  current_motion_filter:
+    mode: "current"
+  gap_aware_soft:
+    mode: "gap_aware_soft"
+    base_step_threshold: 6.0
+    gap_factor: 0.8
+    absolute_cap_multiplier: 1.0
+    max_suspicious_jumps: 1
+    max_accepted_jump_ratio: 0.25
+  gap_aware_class_aware:
+    mode: "class_aware"
+    use_velocity_priors: true
+    absolute_cap_multiplier: 1.0
+    max_suspicious_jumps: 1
+    max_accepted_jump_ratio: 0.25
+  gap_aware_strict_cap:
+    mode: "class_aware_strict_cap"
+    use_velocity_priors: true
+    absolute_cap_multiplier: 0.8
+    max_suspicious_jumps: 1
+    max_accepted_jump_ratio: 0.20
+  gap_aware_bbox_jump_tolerant:
+    mode: "bbox_jump_tolerant"
+    use_velocity_priors: true
+    bbox_height_ratio_threshold: 1.35
+    bbox_height_delta_threshold: 20.0
+    max_suspicious_jumps: 1
+    max_accepted_jump_ratio: 0.25
+    absolute_cap_multiplier: 1.0
+  gap_aware_balanced:
+    mode: "balanced"
+    use_velocity_priors: true
+    bbox_height_ratio_threshold: 1.40
+    bbox_height_delta_threshold: 25.0
+    max_suspicious_jumps: 1
+    max_accepted_jump_ratio: 0.15
+    absolute_cap_multiplier: 0.9
+
+pipeline:
+  run_motion_filtering: true
+  run_global_association: true
+  run_final_export: true
+  run_track1_export: true
+  run_validation: true
+  global_config: "deep_oc_sort_3d/configs/global_mtmc_transition_medium_conf001.yaml"
+  track1_schema: "deep_oc_sort_3d/configs/track1_schema_confirmed.yaml"
+
+selection:
+  require_track1_errors_zero: true
+  max_allowed_purity_drop: 0.01
+  max_allowed_false_merge_rate_delta: 0.01
+  min_motion_clean_retention_gain: 0.10
+  min_track1_rows_retention_gain: 0.10
+  prefer_gap_small_medium_recovery: true
+
+figures:
+  enabled: true
