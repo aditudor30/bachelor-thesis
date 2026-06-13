@@ -1,0 +1,87 @@
+official_023_027:
+  name: "official_023_027_v2_v3_22a"
+  progress: true
+  mode: "incremental"
+  create_zip_packages: true
+  overwrite: false
+
+paths:
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+  output_root: "output/official_023_027"
+  frozen_output_root: "output/frozen_upload_candidates_official_023_027"
+  old_frozen_root: "output/frozen_upload_candidates"
+  detector_pipeline_config: "deep_oc_sort_3d/configs/pipeline_yolo11m_medium_conf001.yaml"
+  v2_old_track1_023_025: "output/frozen_upload_candidates/v2_current/track1.txt"
+  v3_old_track1_023_025: "output/frozen_upload_candidates/v3_gap_aware_soft/track1.txt"
+  v2_source_track1_023_025: "output/track1_submission/baseline_v2_pseudo3d_fullcam/track1.txt"
+  v3_source_track1_023_025: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft/track1_submission/track1.txt"
+  v2_existing_pipeline_root: "output/pipeline_runs/baseline_v2_pseudo3d_fullcam"
+  v2_existing_track1_root: "output/track1_submission/baseline_v2_pseudo3d_fullcam"
+  v3_existing_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft"
+  v3_existing_track1_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft/track1_submission"
+  class_priors_path: "output/3d_priors/baseline_v1_geometry_only/priors/class_dimension_priors_final.json"
+  pseudo3d_fullcam_root: "output/pseudo3d/baseline_v2_pseudo3d_fullcam"
+
+test_scenes:
+  all: ["Warehouse_023", "Warehouse_024", "Warehouse_025", "Warehouse_026", "Warehouse_027"]
+  old: ["Warehouse_023", "Warehouse_024", "Warehouse_025"]
+  new: ["Warehouse_026", "Warehouse_027"]
+
+official_track1:
+  expected_columns: 11
+  round_float_decimals: 2
+  valid_scene_ids: [23, 24, 25, 26, 27]
+  valid_class_ids: [0, 1, 2, 3, 4, 5, 6]
+  require_positive_dimensions: true
+  duplicate_key: ["scene_id", "class_id", "object_id", "frame_id"]
+
+class_mapping:
+  internal:
+    0: "Person"
+    1: "Forklift"
+    2: "PalletTruck"
+    3: "Transporter"
+    4: "FourierGR1T2"
+    5: "AgilityDigit"
+    6: "NovaCarter"
+  official:
+    0: "Person"
+    1: "Forklift"
+    2: "NovaCarter"
+    3: "Transporter"
+    4: "FourierGR1T2"
+    5: "AgilityDigit"
+    6: "PalletTruck"
+  internal_to_official:
+    0: 0
+    1: 1
+    2: 6
+    3: 3
+    4: 4
+    5: 5
+    6: 2
+
+packaging:
+  create_zip: true
+  zip_contains_single_track1_txt: true
+  max_zip_size_mb: 50.0
+
+pipeline:
+  run_missing_new_scenes_only: true
+  fail_if_detector_checkpoint_missing: true
+  fail_if_new_scene_outputs_missing: false
+  allow_rerun_all_023_027: true
+
+v2_pipeline:
+  name: "v2_current_official_023_027"
+  use_existing_logic: true
+  scenes: ["Warehouse_026", "Warehouse_027"]
+
+v3_pipeline:
+  name: "v3_gap_aware_soft_official_023_027"
+  use_bytetrack_local: true
+  use_gap_aware_soft_motion_filter: true
+  scenes: ["Warehouse_026", "Warehouse_027"]
+
+figures:
+  enabled: true
