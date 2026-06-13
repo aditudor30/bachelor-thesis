@@ -1,0 +1,137 @@
+v4_geometry_refinement:
+  name: "v4_geometry_refinement_official_023_027_22c"
+  output_root: "output/v4_geometry_refinement_official_023_027"
+  progress: true
+  overwrite: false
+  create_zip_package: true
+  select_best_variant: true
+
+paths:
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+  v31_track1: "output/v3_coverage_extension_official_023_027/frozen_candidate/v3_coverage_extended_official/track1.txt"
+  v31_root: "output/v3_coverage_extension_official_023_027"
+  v2_official_track1: "output/frozen_upload_candidates_official_023_027/v2_current_official/track1.txt"
+  v3_official_track1: "output/frozen_upload_candidates_official_023_027/v3_gap_aware_soft_official/track1.txt"
+  class_priors_path: "output/3d_priors/baseline_v1_geometry_only/priors/class_dimension_priors_final.json"
+
+official_track1:
+  expected_columns: 11
+  round_float_decimals: 2
+  valid_scene_ids: [23, 24, 25, 26, 27]
+  valid_class_ids: [0, 1, 2, 3, 4, 5, 6]
+  require_positive_dimensions: true
+  duplicate_key: ["scene_id", "class_id", "object_id", "frame_id"]
+
+official_class_mapping:
+  0: "Person"
+  1: "Forklift"
+  2: "NovaCarter"
+  3: "Transporter"
+  4: "FourierGR1T2"
+  5: "AgilityDigit"
+  6: "PalletTruck"
+
+class_mapping:
+  official_to_internal:
+    0: 0
+    1: 1
+    2: 6
+    3: 3
+    4: 4
+    5: 5
+    6: 2
+
+smoothing:
+  enabled: true
+  min_track_length: 5
+  xyz_window: 5
+  use_moving_median: true
+  preserve_endpoints: true
+  gap_aware: true
+  max_gap_for_smoothing: 10
+  max_position_change_per_point_m: 5.0
+
+outlier_repair:
+  enabled: true
+  min_track_length: 5
+  local_window: 5
+  step_multiplier_vs_median: 4.0
+  absolute_step_threshold_m_default: 20.0
+  absolute_step_threshold_by_class:
+    0: 12.0
+    1: 18.0
+    2: 15.0
+    3: 18.0
+    4: 12.0
+    5: 12.0
+    6: 15.0
+  z_outlier_threshold_m: 5.0
+  max_gap_for_interpolation: 10
+  max_repairs_per_track_ratio: 0.10
+  repair_method: "linear_interpolation"
+
+dimension_consistency:
+  enabled: true
+  min_track_length_for_track_median: 3
+  use_track_median: true
+  use_class_prior_fallback: true
+  max_dimension_change_ratio_warning: 0.50
+  max_dimension_change_ratio_apply: 0.75
+  require_positive_dimensions: true
+
+yaw_refinement:
+  enabled: true
+  normalize_range: "-pi_pi"
+  use_circular_median: true
+  use_heading_for_vehicle_like_classes: true
+  use_heading_for_person: false
+  heading_classes: [1, 2, 3, 6]
+  conservative_yaw_classes: [0, 4, 5]
+  min_total_displacement_for_heading_m: 2.0
+  min_step_for_heading_m: 0.25
+  yaw_smoothing_window: 5
+  max_gap_for_smoothing: 10
+  max_yaw_change_per_frame_rad: 1.0
+  heading_blend: 0.25
+
+geometry_metrics:
+  suspicious_step_m_default: 12.0
+  invalid_step_m_default: 20.0
+  suspicious_step_m_by_class:
+    0: 8.0
+    1: 12.0
+    2: 10.0
+    3: 12.0
+    4: 8.0
+    5: 8.0
+    6: 10.0
+  z_outlier_threshold_m: 5.0
+  yaw_jump_threshold_rad: 1.0
+
+selection:
+  require_validation_errors_zero: true
+  require_same_row_count_as_v31: true
+  require_same_unique_track_count_as_v31: true
+  require_identical_row_keys_as_v31: true
+  max_rows_drop_allowed: 0
+  max_duplicate_keys_allowed: 0
+  max_nan_inf_allowed: 0
+  max_non_positive_dimensions_allowed: 0
+  max_rounding_issues_allowed: 0
+  max_mean_position_change_m: 1.0
+  max_p95_position_change_m: 3.0
+  max_position_change_m: 5.0
+  prefer_lower_step_p95: true
+  prefer_lower_suspect_track_count: true
+  prefer_lower_dimension_variance: true
+  prefer_lower_yaw_jump_count: true
+  minimum_proxy_improvements: 1
+
+packaging:
+  create_zip: true
+  zip_contains_single_track1_txt: true
+  max_zip_size_mb: 50.0
+
+figures:
+  enabled: true
+
