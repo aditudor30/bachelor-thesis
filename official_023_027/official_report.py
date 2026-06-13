@@ -132,7 +132,7 @@ def _class_distribution_lines(left: Dict[str, Any], right: Dict[str, Any]) -> Li
 
 
 def _readiness_line(name: str, value: Dict[str, Any]) -> str:
-    verification = value.get("zip_verification", {})
+    verification = value.get("zip_verification") or {}
     return "- %s: ready=`%s`, Track1=`%s`, zip=`%s`, zip_size_mb=`%s`, zip_entries=`%s`, zip_lines=`%s`, track1_SHA256=`%s`, zip_SHA256=`%s`" % (
         name, value.get("ready"), value.get("track1_path"), value.get("zip_path"), value.get("zip_size_mb"),
         verification.get("names"), verification.get("line_count"), value.get("track1_sha256"), value.get("zip_sha256")
