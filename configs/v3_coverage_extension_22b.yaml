@@ -1,0 +1,127 @@
+v3_coverage_extension:
+  name: "v3_coverage_extension_official_023_027_22b"
+  output_root: "output/v3_coverage_extension_official_023_027"
+  progress: true
+  overwrite: false
+  create_zip_package: true
+  select_best_variant: true
+
+paths:
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+  v2_official_track1: "output/frozen_upload_candidates_official_023_027/v2_current_official/track1.txt"
+  v3_official_track1: "output/frozen_upload_candidates_official_023_027/v3_gap_aware_soft_official/track1.txt"
+  official_023_027_root: "output/official_023_027"
+  v3_gap_aware_soft_root: "output/bytetrack_motion_filtering/baseline_v2_pseudo3d_fullcam/filter_runs/gap_aware_soft"
+  v3_official_root: "output/official_023_027/v3_gap_aware_soft"
+  bytetrack_local_root: "output/local_tracks/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  bytetrack_tracklets_root: "output/tracklets/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  bytetrack_candidates_root: "output/mtmc_candidates/baseline_v2_pseudo3d_fullcam_bytetrack_local"
+  bytetrack_tuning_best_root: "output/bytetrack_tuning/baseline_v2_pseudo3d_fullcam/sweep_runs/bt_coverage_recover_low"
+  class_priors_path: "output/3d_priors/baseline_v1_geometry_only/priors/class_dimension_priors_final.json"
+
+official_track1:
+  expected_columns: 11
+  round_float_decimals: 2
+  valid_scene_ids: [23, 24, 25, 26, 27]
+  valid_class_ids: [0, 1, 2, 3, 4, 5, 6]
+  require_positive_dimensions: true
+  duplicate_key: ["scene_id", "class_id", "object_id", "frame_id"]
+
+class_mapping:
+  internal_to_official:
+    0: 0
+    1: 1
+    2: 6
+    3: 3
+    4: 4
+    5: 5
+    6: 2
+
+targeting:
+  target_scenes: [24, 26, 23]
+  conservative_scenes: [25, 27]
+  target_official_classes: [0, 1, 3]
+  conservative_official_classes: [2, 4, 5, 6]
+
+recovery_rules:
+  common:
+    require_detection_id: true
+    require_all_rows_geometry_valid: true
+    id_offsets:
+      v3_short_track_safe: 900000000
+      v3_associated_tentative_export: 910000000
+      v3_scene_class_targeted_recovery: 920000000
+      v3_single_camera_keep_clean: 930000000
+      v3_balanced_coverage_extension: 940000000
+  short_track_safe:
+    enabled: true
+    min_length_default: 3
+    min_length_person: 3
+    min_length_forklift: 2
+    max_length: 8
+    min_mean_confidence_default: 0.35
+    min_mean_confidence_person: 0.30
+    min_mean_confidence_forklift: 0.30
+    min_mean_confidence_rare: 0.45
+    require_pseudo3d_valid: true
+    require_positive_dimensions: true
+    max_step_p95_m: 15.0
+  associated_tentative_export:
+    enabled: true
+    export_detection_associated_only: true
+    export_kalman_prediction_only: false
+    min_mean_confidence: 0.30
+    max_length: 15
+    allowed_states: ["tentative", "unconfirmed", "lost"]
+    allow_low_confidence_confirmed: true
+    max_confirmed_mean_confidence: 0.45
+    require_pseudo3d_valid: true
+  scene_class_targeted_recovery:
+    enabled: true
+    apply_only_to_target_scenes_classes: true
+    min_length: 3
+    min_mean_confidence_target: 0.28
+    min_mean_confidence_non_target: 0.45
+    max_step_p95_m: 18.0
+    max_added_rows_ratio_per_scene: 0.75
+    max_added_rows_ratio_per_class: 0.75
+  single_camera_keep_clean:
+    enabled: true
+    min_length: 5
+    min_mean_confidence: 0.35
+    min_mean_confidence_rare: 0.45
+    max_step_p95_m: 12.0
+    require_smoothness_good_or_unknown: true
+    require_no_extreme_jumps: true
+    keep_as_separate_global_id: true
+  balanced:
+    source_priority:
+      - v3_single_camera_keep_clean
+      - v3_scene_class_targeted_recovery
+      - v3_short_track_safe
+      - v3_associated_tentative_export
+    target_total_rows_min: 190000
+    target_total_rows_max: 220000
+    hard_total_rows_max: 225000
+    target_scene_share_min: 0.65
+    target_class_share_min: 0.75
+
+selection:
+  min_row_gain_vs_v3: 20000
+  preferred_row_range_min: 190000
+  preferred_row_range_max: 220000
+  max_unique_track_multiplier_vs_v3: 3.0
+  max_false_merge_delta_allowed: 0.01
+  max_purity_drop_allowed: 0.01
+  require_validation_errors_zero: true
+  require_all_scenes_present: true
+  require_all_classes_valid: true
+
+packaging:
+  create_zip: true
+  zip_contains_single_track1_txt: true
+  max_zip_size_mb: 50.0
+
+figures:
+  enabled: true
+
