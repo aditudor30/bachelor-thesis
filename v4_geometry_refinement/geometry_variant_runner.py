@@ -90,4 +90,14 @@ def _per_group_rows(metrics: Dict[str, Any], group: str) -> List[Dict[str, Any]]
     suspect = metrics.get("suspect_tracks_by_%s" % suffix, {})
     repairs = metrics.get("points_repaired_by_%s" % suffix, {})
     keys = sorted(set(distribution.keys()).union(step.keys()).union(str(key) for key in suspect.keys()).union(str(key) for key in repairs.keys()), key=int)
-    return [{"%s_id" % suffix: int(key), "rows": distribution.get(key, 0), "step_p95": step.get(key), "suspect_tracks": suspect.get(key, suspect.get(int(key), 0)), "points_repaired": repairs.get(key, repairs.get(int(key), 0))} for key in keys]
+    dimension_changes = metrics.get("dimension_changes_by_class", {}) if group == "class" else {}
+    yaw_changes = metrics.get("yaw_changes_by_class", {}) if group == "class" else {}
+    return [{
+        "%s_id" % suffix: int(key),
+        "rows": distribution.get(key, 0),
+        "step_p95": step.get(key),
+        "suspect_tracks": suspect.get(key, suspect.get(int(key), 0)),
+        "points_repaired": repairs.get(key, repairs.get(int(key), 0)),
+        "dimension_changes": dimension_changes.get(key, dimension_changes.get(int(key), 0)),
+        "yaw_changes": yaw_changes.get(key, yaw_changes.get(int(key), 0)),
+    } for key in keys]

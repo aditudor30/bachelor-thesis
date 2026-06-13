@@ -126,6 +126,14 @@ def _variant_comparison_row(
         hard_failures.append("non_positive_dimensions")
     if int(checks.get("rounding_issues", 0)) > int(selection.get("max_rounding_issues_allowed", 0)):
         hard_failures.append("rounding_issues")
+    expected_scenes = set(str(value) for value in config.get("official_track1", {}).get("valid_scene_ids", []))
+    actual_scenes = set(str(value) for value in metrics.get("scene_distribution", {}).keys())
+    if expected_scenes and actual_scenes != expected_scenes:
+        hard_failures.append("official_scene_set_changed")
+    expected_classes = set(str(value) for value in config.get("official_track1", {}).get("valid_class_ids", []))
+    actual_classes = set(str(value) for value in metrics.get("class_distribution", {}).keys())
+    if expected_classes and actual_classes != expected_classes:
+        hard_failures.append("official_class_set_changed")
 
     aggressive_reasons = _aggressive_reasons(metrics, config)
     improvement_count = 0
@@ -160,6 +168,10 @@ def _variant_comparison_row(
         "rows": metrics.get("rows"),
         "unique_tracks": metrics.get("unique_tracks"),
         "validation_errors": validation.get("num_errors"),
+        "duplicate_keys": checks.get("duplicate_key_count"),
+        "nan_inf": checks.get("nan_or_inf_values"),
+        "non_positive_dimensions": checks.get("non_positive_dimensions"),
+        "rounding_issues": checks.get("rounding_issues"),
         "step_p95": metrics.get("step_p95"),
         "suspect_track_count": metrics.get("suspect_track_count"),
         "suspect_point_count": metrics.get("suspect_point_count"),

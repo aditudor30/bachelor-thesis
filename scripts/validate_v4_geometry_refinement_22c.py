@@ -2,11 +2,9 @@
 
 import argparse
 from pathlib import Path
-from typing import List
-
 from deep_oc_sort_3d.v4_geometry_refinement.geometry_refinement_config import VARIANT_NAMES, load_geometry_refinement_config, progress_default, variant_root
 from deep_oc_sort_3d.v4_geometry_refinement.geometry_selector import compare_and_select_geometry_variant
-from deep_oc_sort_3d.v4_geometry_refinement.track1_geometry_io import read_json
+from deep_oc_sort_3d.v4_geometry_refinement.track1_geometry_io import read_json, write_json
 from deep_oc_sort_3d.v4_geometry_refinement.track1_geometry_validator import validate_v4_track1
 
 
@@ -34,10 +32,9 @@ def main() -> None:
             "non_positive_dimensions": checks.get("non_positive_dimensions"),
             "rounding_issues": checks.get("rounding_issues"),
         })
-        from deep_oc_sort_3d.v4_geometry_refinement.track1_geometry_io import write_json
         write_json(geometry_path, geometry)
         print("%s status=%s errors=%s" % (variant, report.get("status"), report.get("num_errors")))
-    comparison = compare_and_select_geometry_variant(config, variants=VARIANT_NAMES)
+    comparison = compare_and_select_geometry_variant(config, variants=variants)
     print("selected_variant: %s" % comparison.get("selected_variant"))
     print("verdict: %s" % comparison.get("verdict"))
 

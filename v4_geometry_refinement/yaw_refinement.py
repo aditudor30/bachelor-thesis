@@ -36,7 +36,15 @@ def refine_track_yaw(
             if len(indices) >= 3:
                 refined[index] = circular_median(yaws[indices])
         total_displacement = float(np.linalg.norm(points[-1, :2] - points[0, :2])) if len(track) > 1 else 0.0
-        use_heading = int(key[1]) in heading_classes and bool(rules.get("use_heading_for_vehicle_like_classes", True)) and total_displacement >= float(rules.get("min_total_displacement_for_heading_m", 2.0))
+        elapsed_frames = max(1, frames[-1] - frames[0]) if len(track) > 1 else 1
+        path_distance = sum(float(np.linalg.norm(points[index, :2] - points[index - 1, :2])) for index in range(1, len(track)))
+        mean_speed = path_distance / float(elapsed_frames)
+        use_heading = (
+            int(key[1]) in heading_classes
+            and bool(rules.get("use_heading_for_vehicle_like_classes", True))
+            and total_displacement >= float(rules.get("min_total_displacement_for_heading_m", 2.0))
+            and mean_speed >= float(rules.get("min_step_for_heading_m", 0.25))
+        )
         if int(key[1]) == 0 and not bool(rules.get("use_heading_for_person", False)):
             use_heading = False
         if use_heading:

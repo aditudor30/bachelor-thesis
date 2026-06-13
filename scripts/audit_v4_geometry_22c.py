@@ -2,8 +2,6 @@
 
 import argparse
 from pathlib import Path
-from typing import Any, Dict
-
 from deep_oc_sort_3d.v4_geometry_refinement.geometry_audit import audit_v31_geometry
 from deep_oc_sort_3d.v4_geometry_refinement.geometry_refinement_config import load_geometry_refinement_config, output_root, progress_default
 from deep_oc_sort_3d.v4_geometry_refinement.track1_geometry_io import prepare_directory, read_json

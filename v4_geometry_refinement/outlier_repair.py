@@ -36,6 +36,23 @@ def repair_position_outliers(
         max_repairs = max(1, int(np.floor(float(len(track)) * ratio)))
         candidates = []
         track_z_median = float(np.median(points[:, 2]))
+        if len(track) >= 3:
+            first_gap = frames[1] - frames[0]
+            second_gap = frames[2] - frames[1]
+            if 0 < first_gap <= max_gap and 0 < second_gap <= max_gap:
+                first_step = float(np.linalg.norm(points[1] - points[0])) / float(first_gap)
+                second_step = float(np.linalg.norm(points[2] - points[1])) / float(second_gap)
+                first_z_outlier = abs(float(points[0, 2]) - track_z_median) > float(rules.get("z_outlier_threshold_m", 5.0))
+                if (first_step > dynamic and second_step <= dynamic * 0.5) or first_z_outlier:
+                    candidates.append((first_step, 0, points[1].copy(), "endpoint_nearest_valid"))
+            last_gap = frames[-1] - frames[-2]
+            previous_gap = frames[-2] - frames[-3]
+            if 0 < last_gap <= max_gap and 0 < previous_gap <= max_gap:
+                last_step = float(np.linalg.norm(points[-1] - points[-2])) / float(last_gap)
+                previous_step = float(np.linalg.norm(points[-2] - points[-3])) / float(previous_gap)
+                last_z_outlier = abs(float(points[-1, 2]) - track_z_median) > float(rules.get("z_outlier_threshold_m", 5.0))
+                if (last_step > dynamic and previous_step <= dynamic * 0.5) or last_z_outlier:
+                    candidates.append((last_step, len(track) - 1, points[-2].copy(), "endpoint_nearest_valid"))
         for index in range(1, len(track) - 1):
             gap_before = frames[index] - frames[index - 1]
             gap_after = frames[index + 1] - frames[index]
@@ -78,4 +95,3 @@ def _median_step_per_frame(points: np.ndarray, frames: Sequence[int]) -> float:
 def _class_threshold(rules: Dict[str, Any], class_id: int) -> float:
     values = rules.get("absolute_step_threshold_by_class", {})
     return float(values.get(class_id, values.get(str(class_id), rules.get("absolute_step_threshold_m_default", 20.0))))
-

@@ -9,14 +9,19 @@ from deep_oc_sort_3d.v4_geometry_refinement.track1_geometry_io import read_json
 
 def main() -> None:
     args = _parser().parse_args()
-    config = load_geometry_refinement_config(Path(args.config))
-    root = output_root(config)
-    comparison = read_json(root / "comparison" / "v4_geometry_comparison.json")
-    package = read_json(root / "packages" / "upload_readiness_report.json")
+    if args.root:
+        root = Path(args.root)
+    else:
+        config = load_geometry_refinement_config(Path(args.config))
+        root = output_root(config)
+    comparison = read_json(root / "comparison" / "v4_geometry_refinement_summary.json")
+    readiness = read_json(root / "frozen_candidate" / "comparison" / "upload_readiness.json")
+    package = readiness.get("v4_geometry_refined_official", {})
     print("verdict: %s" % comparison.get("verdict"))
     print("selected_variant: %s" % comparison.get("selected_variant"))
     print("ready_for_upload: %s" % package.get("ready"))
-    print("track1_rows: %s" % package.get("track1_rows"))
+    print("track1_rows: %s" % package.get("rows"))
+    print("unique_tracks: %s" % package.get("unique_tracks"))
     print("scene_distribution: %s" % package.get("per_scene_rows"))
     print("class_distribution: %s" % package.get("per_class_rows"))
     print("validation_errors: %s" % package.get("validation_errors"))
@@ -34,7 +39,8 @@ def main() -> None:
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", required=True)
+    parser.add_argument("--config", default="deep_oc_sort_3d/configs/v4_geometry_refinement_22c.yaml")
+    parser.add_argument("--root", default=None)
     parser.add_argument("--variant", default=None, help="Accepted for CLI consistency.")
     parser.add_argument("--all", action="store_true", help="Accepted for CLI consistency.")
     parser.add_argument("--progress", dest="progress", action="store_true")

@@ -20,6 +20,7 @@ def compute_geometry_metrics(
     grouped = group_tracks(rows)
     rules = config.get("geometry_metrics", {})
     step_values = []
+    step_xy_values = []
     track_lengths = []
     suspect_tracks = []
     suspect_points = []
@@ -43,7 +44,9 @@ def compute_geometry_metrics(
         for index in range(1, len(track)):
             gap = max(1, frames[index] - frames[index - 1])
             distance = float(np.linalg.norm(points[index] - points[index - 1])) / float(gap)
+            distance_xy = float(np.linalg.norm(points[index, :2] - points[index - 1, :2])) / float(gap)
             step_values.append(distance)
+            step_xy_values.append(distance_xy)
             step_by_scene[int(key[0])].append(distance)
             step_by_class[class_id].append(distance)
             if distance > threshold:
@@ -99,6 +102,9 @@ def compute_geometry_metrics(
         "mean_track_length": _mean(track_lengths), "median_track_length": _pct(track_lengths, 50),
         "step_mean": _mean(step_values), "step_median": _pct(step_values, 50), "step_p90": _pct(step_values, 90),
         "step_p95": _pct(step_values, 95), "step_p99": _pct(step_values, 99), "step_max": max(step_values) if step_values else None,
+        "step_xy_mean": _mean(step_xy_values), "step_xy_median": _pct(step_xy_values, 50),
+        "step_xy_p90": _pct(step_xy_values, 90), "step_xy_p95": _pct(step_xy_values, 95),
+        "step_xy_p99": _pct(step_xy_values, 99), "step_xy_max": max(step_xy_values) if step_xy_values else None,
         "suspect_track_count": len(suspect_tracks), "suspect_track_ratio": _ratio(len(suspect_tracks), len(grouped)),
         "suspect_point_count": len(suspect_points), "suspect_point_ratio": _ratio(len(suspect_points), len(rows)),
         "jump_count": jump_count, "jump_ratio": _ratio(jump_count, len(step_values)),

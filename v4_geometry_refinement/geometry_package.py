@@ -3,7 +3,7 @@
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from deep_oc_sort_3d.official_023_027.official_track1_io import compute_sha256
 from deep_oc_sort_3d.v4_geometry_refinement.geometry_refinement_config import output_root, variant_root
@@ -94,4 +94,10 @@ def package_selected_geometry_variant(
         "selected_variant": variant,
         "reasons": [] if ready else ["frozen_package_validation_or_size_gate_failed"],
     })
+    if not ready:
+        write_json(root / "comparison" / "verdict.json", {
+            "label": "v4_geometry_refinement_invalid_fix_required",
+            "selected_variant": variant,
+            "reasons": ["frozen_package_validation_or_size_gate_failed"],
+        })
     return candidate
