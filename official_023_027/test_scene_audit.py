@@ -10,6 +10,7 @@ from deep_oc_sort_3d.official_023_027.official_track1_io import write_json
 def audit_test_scenes(config: Dict[str, Any]) -> Dict[str, Any]:
     """Audit required test folders without reading videos."""
     root = dataset_root(config)
+    require_map = bool(config.get("pipeline", {}).get("require_map_png", False))
     rows = []
     for scene_name in scene_names(config, "all"):
         scene_root = root / "test" / scene_name
@@ -20,6 +21,7 @@ def audit_test_scenes(config: Dict[str, Any]) -> Dict[str, Any]:
             [path for path in videos.iterdir() if path.is_file() and path.suffix.lower() in (".mp4", ".avi", ".mov", ".mkv")]
         ) if videos.is_dir() else []
         missing = []
+        warnings = []
         if not scene_root.exists():
             missing.append("scene_root")
         if not videos.is_dir():
@@ -28,8 +30,10 @@ def audit_test_scenes(config: Dict[str, Any]) -> Dict[str, Any]:
             missing.append("video_files")
         if not calibration.is_file():
             missing.append("calibration.json")
-        if not map_path.is_file():
+        if require_map and not map_path.is_file():
             missing.append("map.png")
+        elif not map_path.is_file():
+            warnings.append("optional_map.png_missing")
         rows.append(
             {
                 "scene_name": scene_name,
@@ -40,9 +44,11 @@ def audit_test_scenes(config: Dict[str, Any]) -> Dict[str, Any]:
                 "video_files": len(video_files),
                 "calibration_exists": calibration.is_file(),
                 "map_exists": map_path.is_file(),
+                "map_required": require_map,
                 "depth_expected": False,
                 "ground_truth_expected": False,
                 "missing_required": missing,
+                "warnings": warnings,
                 "status": "ok" if not missing else "error",
             }
         )
@@ -52,6 +58,11 @@ def audit_test_scenes(config: Dict[str, Any]) -> Dict[str, Any]:
         "scene_count": len(rows),
         "ok_scenes": sum(1 for row in rows if row.get("status") == "ok"),
         "missing_scenes": [row.get("scene_name") for row in rows if row.get("status") != "ok"],
+        "warnings": [
+            "%s:%s" % (row.get("scene_name"), warning)
+            for row in rows
+            for warning in row.get("warnings", [])
+        ],
         "status": "ok" if rows and all(row.get("status") == "ok" for row in rows) else "error",
         "scenes": rows,
     }

@@ -71,6 +71,7 @@ pipeline:
   fail_if_detector_checkpoint_missing: true
   fail_if_new_scene_outputs_missing: false
   allow_rerun_all_023_027: true
+  require_map_png: false
 
 v2_pipeline:
   name: "v2_current_official_023_027"

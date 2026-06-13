@@ -86,6 +86,7 @@ def run_official_extension(
 def extension_preflight(config: Dict[str, Any], scenes: List[str]) -> Dict[str, Any]:
     """Check dataset scenes, detector config/checkpoint and reusable configs."""
     paths = config.get("paths", {})
+    require_map = bool(config.get("pipeline", {}).get("require_map_png", False))
     detector_config_path = Path(str(paths.get("detector_pipeline_config", "deep_oc_sort_3d/configs/pipeline_yolo11m_medium_conf001.yaml")))
     detector_config = _load_yaml(detector_config_path)
     detector_model = Path(str(detector_config.get("pipeline", {}).get("detector_model", "")))
@@ -99,14 +100,22 @@ def extension_preflight(config: Dict[str, Any], scenes: List[str]) -> Dict[str, 
     if configured_internal != detector_internal:
         errors.append("detector_internal_class_mapping_mismatch")
     scene_rows = []
+    warnings = []
     for scene in scenes:
         root = dataset_root(config) / "test" / scene
         missing = []
-        for name in ("videos", "calibration.json", "map.png"):
+        scene_warnings = []
+        for name in ("videos", "calibration.json"):
             path = root / name
             valid = path.is_dir() if name == "videos" else path.is_file()
             if not valid:
                 missing.append(name)
+        map_path = root / "map.png"
+        if require_map and not map_path.is_file():
+            missing.append("map.png")
+        elif not map_path.is_file():
+            scene_warnings.append("optional_map.png_missing")
+            warnings.append("%s:optional_map.png_missing" % scene)
         video_files = []
         videos = root / "videos"
         if videos.is_dir():
@@ -115,7 +124,16 @@ def extension_preflight(config: Dict[str, Any], scenes: List[str]) -> Dict[str, 
                 missing.append("video_files")
         if missing:
             errors.append("scene_missing_required:%s:%s" % (scene, ",".join(missing)))
-        scene_rows.append({"scene_name": scene, "root": str(root), "video_files": len(video_files), "missing": missing, "status": "ok" if not missing else "error"})
+        scene_rows.append({
+            "scene_name": scene,
+            "root": str(root),
+            "video_files": len(video_files),
+            "map_exists": map_path.is_file(),
+            "map_required": require_map,
+            "missing": missing,
+            "warnings": scene_warnings,
+            "status": "ok" if not missing else "error",
+        })
     required_configs = [
         Path("deep_oc_sort_3d/configs/pseudo3d_isolated_debug.yaml"),
         Path("deep_oc_sort_3d/configs/pseudo3d_stabilization_debug.yaml"),
@@ -129,6 +147,7 @@ def extension_preflight(config: Dict[str, Any], scenes: List[str]) -> Dict[str, 
     return {
         "status": "ok" if not errors else "error",
         "errors": errors,
+        "warnings": warnings,
         "scenes": scene_rows,
         "detector_pipeline_config": str(detector_config_path),
         "detector_model": str(detector_model),
