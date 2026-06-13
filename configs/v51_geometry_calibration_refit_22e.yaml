@@ -1,0 +1,152 @@
+v51_geometry_calibration_refit:
+  name: "v51_geometry_calibration_refit_official_023_027_22e"
+  output_root: "output/v51_geometry_calibration_refit_official_023_027"
+  progress: true
+  overwrite: false
+  create_zip_package: true
+  select_best_variant: true
+  require_fit_train_if_possible: true
+  allow_internal_holdout_fallback: false
+
+paths:
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+  v5_track1: "output/v5_geometry_calibration_official_023_027/frozen_candidate/v5_geometry_calibrated_official/track1.txt"
+  v4_track1: "output/v4_geometry_refinement_official_023_027/frozen_candidate/v4_geometry_refined_official/track1.txt"
+  v31_track1: "output/v3_coverage_extension_official_023_027/frozen_candidate/v3_coverage_extended_official/track1.txt"
+  v5_root: "output/v5_geometry_calibration_official_023_027"
+  v4_root: "output/v4_geometry_refinement_official_023_027"
+  v31_root: "output/v3_coverage_extension_official_023_027"
+  class_priors_path: "output/3d_priors/baseline_v1_geometry_only/priors/class_dimension_priors_final.json"
+  pseudo3d_fullcam_root: "output/pseudo3d/baseline_v2_pseudo3d_fullcam"
+  pipeline_runs_root: "output/pipeline_runs"
+  official_023_027_root: "output/official_023_027"
+  detector_checkpoint: null
+  detector_config: "deep_oc_sort_3d/configs/pipeline_yolo11m_medium_conf001.yaml"
+  pseudo3d_config: "deep_oc_sort_3d/configs/pseudo3d_isolated_debug.yaml"
+  calibration_source_roots:
+    - "output/pipeline_runs/baseline_v2_pseudo3d_fullcam/observations3d"
+    - "output/pipeline_runs/yolo11m_medium_curriculum_conf001/observations3d"
+    - "output/pseudo3d/baseline_v2_pseudo3d_fullcam/predictions_stabilized"
+    - "output/pseudo3d/baseline_v2_pseudo3d_fullcam/predictions_raw"
+
+official_track1:
+  expected_columns: 11
+  round_float_decimals: 2
+  valid_scene_ids: [23, 24, 25, 26, 27]
+  valid_class_ids: [0, 1, 2, 3, 4, 5, 6]
+  require_positive_dimensions: true
+  duplicate_key: ["scene_id", "class_id", "object_id", "frame_id"]
+
+official_class_mapping:
+  0: "Person"
+  1: "Forklift"
+  2: "NovaCarter"
+  3: "Transporter"
+  4: "FourierGR1T2"
+  5: "AgilityDigit"
+  6: "PalletTruck"
+
+class_mapping:
+  official_to_internal: {0: 0, 1: 1, 2: 6, 3: 3, 4: 4, 5: 5, 6: 2}
+  internal_to_official: {0: 0, 1: 1, 2: 6, 3: 3, 4: 4, 5: 5, 6: 2}
+
+calibration_splits:
+  fit_train:
+    split: "train"
+    scenes: ["Warehouse_000", "Warehouse_001", "Warehouse_002", "Warehouse_003", "Warehouse_004", "Warehouse_005", "Warehouse_006", "Warehouse_007", "Warehouse_008", "Warehouse_009", "Warehouse_010", "Warehouse_011", "Warehouse_012", "Warehouse_013"]
+  internal_holdout:
+    split: "train"
+    scenes: ["Warehouse_014", "Warehouse_015", "Warehouse_016", "Warehouse_017", "Warehouse_018", "Warehouse_019"]
+  official_val:
+    split: "val"
+    scenes: ["Warehouse_020", "Warehouse_021", "Warehouse_022"]
+
+source_generation:
+  generate_missing_fit_train_sources: true
+  run_detector_if_needed: true
+  run_pseudo3d_if_needed: true
+  fail_if_detector_checkpoint_missing: true
+  no_training: true
+  detector_conf_threshold: 0.01
+  detector_imgsz: 1280
+  detector_device: "0"
+  frame_stride: 1
+  max_frames: null
+
+matching:
+  same_frame: true
+  same_class: true
+  max_center_distance_m: 5.0
+  max_2d_iou_match_if_available: true
+  min_2d_iou: 0.2
+  ambiguity_iou_margin: 0.05
+  ambiguity_distance_margin_m: 0.25
+  reject_ambiguous_matches: true
+  min_samples_per_class: 50
+  min_samples_per_camera_class: 30
+  center_yaw_coordinate_frames: ["world", "global"]
+  allow_unknown_coordinate_frame_for_center_yaw: false
+
+dimension_calibration:
+  enabled: true
+  robust_statistic: "median"
+  min_samples_per_class: 50
+  scale_min: 0.85
+  scale_max: 1.15
+  require_holdout_improvement: true
+  require_official_val_no_degradation: true
+
+center_bias_calibration:
+  enabled: true
+  robust_statistic: "median"
+  min_samples_per_class: 100
+  max_bias_m_person: 0.50
+  max_bias_m_default: 1.00
+  max_residual_mad_m_person: 2.00
+  max_residual_mad_m_default: 3.00
+  require_holdout_improvement: true
+  require_official_val_no_degradation: true
+
+depth_scale_calibration:
+  enabled: true
+  require_camera_mapping_for_test: true
+  min_samples_per_bin: 100
+  scale_min: 0.90
+  scale_max: 1.10
+
+yaw_calibration:
+  enabled: true
+  use_circular_statistics: true
+  min_samples_per_class: 50
+  max_yaw_bias_rad: 0.35
+  apply_to_classes: [1, 2, 3, 6]
+  conservative_classes: [0, 4, 5]
+  require_holdout_improvement: true
+  require_official_val_no_degradation: true
+
+selection:
+  require_validation_errors_zero: true
+  require_same_row_count_as_input: true
+  require_same_unique_track_count_as_input: true
+  require_identical_row_keys_as_input: true
+  require_no_duplicate_keys: true
+  require_no_nan_inf: true
+  require_no_non_positive_dimensions: true
+  max_position_change_mean_m: 1.0
+  max_position_change_p95_m: 3.0
+  max_position_change_max_m: 5.0
+  max_dimension_change_ratio: 0.20
+  require_fit_source: "fit_train"
+  reject_if_fit_source_is_internal_holdout_fallback: true
+  require_official_val_improvement_for_center_changes: true
+  prefer_center_error_improvement: true
+  prefer_dimension_improvement: true
+  prefer_yaw_error_improvement: true
+
+packaging:
+  create_zip: true
+  zip_contains_single_track1_txt: true
+  max_zip_size_mb: 50.0
+
+figures:
+  enabled: true
