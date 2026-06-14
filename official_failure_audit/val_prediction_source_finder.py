@@ -159,7 +159,23 @@ def _read_candidate(candidate: Dict[str, Any], config: Dict[str, Any]) -> Tuple[
         return [row for row in read_track1_like(path) if row.scene_id in wanted_scene_ids], 0
     rows: List[AuditTrack1Row] = []
     rejected = 0
+    observation_lookup = _observation_metadata_lookup(path, config)
     for line_number, raw in enumerate(_iter_structured_rows(path), 1):
+        if observation_lookup is not None:
+            metadata = observation_lookup.get((
+                _optional_int(raw.get("frame_id")), _optional_int(raw.get("detection_id")),
+            ))
+            if metadata is not None:
+                raw = dict(raw)
+                for key in [
+                    "coordinate_frame", "center_3d_source", "pseudo3d_used",
+                    "fallback_original_used", "is_gt_derived", "projection_error_reason",
+                ]:
+                    if key in metadata:
+                        raw[key] = metadata.get(key)
+            elif _bool(raw.get("matched_gt")):
+                raw = dict(raw)
+                raw["is_gt_derived"] = True
         if _gt_derived(raw):
             rejected += 1
             continue
@@ -320,9 +336,39 @@ def _stable_id(value: str) -> int:
 
 
 def _gt_derived(row: Dict[str, Any]) -> bool:
-    explicit = _bool(row.get("is_gt_derived"))
-    matched = _bool(row.get("matched_gt"))
-    return explicit or (matched and str(row.get("is_gt_derived", "")).lower() not in ("false", "0", "no"))
+    if _bool(row.get("is_gt_derived")):
+        return True
+    if not _bool(row.get("matched_gt")):
+        return False
+    if _bool(row.get("pseudo3d_used")):
+        return False
+    source = str(row.get("center_3d_source") or "").lower()
+    return _bool(row.get("fallback_original_used")) or source in ("original_fallback", "ground_truth", "gt")
+
+
+def _observation_metadata_lookup(
+    frame_path: Path, config: Dict[str, Any],
+) -> Optional[Dict[Tuple[Optional[int], Optional[int]], Dict[str, Any]]]:
+    if "frame_global_records" not in frame_path.parts:
+        return None
+    scene = next((part for part in frame_path.parts if str(part).startswith("Warehouse_")), "")
+    camera = frame_path.stem
+    if camera.endswith("_global_records"):
+        camera = camera[:-len("_global_records")]
+    candidates: List[Path] = []
+    for value in config.get("paths", {}).get("v2_roots", []):
+        root = Path(str(value))
+        candidates.extend([
+            root / "observations3d" / "official_val" / scene / (camera + ".jsonl"),
+            root / "official_val" / scene / (camera + ".jsonl"),
+        ])
+    path = next((value for value in candidates if value.is_file()), None)
+    if path is None:
+        return {}
+    lookup: Dict[Tuple[Optional[int], Optional[int]], Dict[str, Any]] = {}
+    for row in iter_jsonl(path):
+        lookup[(_optional_int(row.get("frame_id")), _optional_int(row.get("detection_id")))] = row
+    return lookup
 
 
 def _vector(value: Any) -> Optional[Tuple[float, float, float]]:

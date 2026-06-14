@@ -55,8 +55,15 @@ def parse_val_ground_truth(
         scene_summaries.append(_frame_summary(scene, scene_rows, path))
         calibration_summaries.append(_calibration_summary(dataset_root(config) / "val" / scene / "calibration.json", scene))
 
+    raw_normalized_rows = len(rows)
+    rows, duplicate_summary = _deduplicate_gt_rows(rows)
+    scene_summaries = [
+        _frame_summary(scene, [row for row in rows if row.scene_id == scene_id(scene)], dataset_root(config) / "val" / scene / "ground_truth.json")
+        for scene in val_scenes(config)
+    ]
     summary = _structure_summary(
         rows, field_counts, camera_ids, raw_examples, scene_summaries, calibration_summaries,
+        raw_normalized_rows, duplicate_summary,
     )
     audit_root = output_root / "gt_audit"
     write_json(audit_root / "gt_structure_summary.json", summary)
@@ -70,11 +77,14 @@ def _structure_summary(
     rows: Sequence[AuditTrack1Row], field_counts: Dict[str, int], camera_ids: Set[str],
     raw_example: Dict[str, Any], scene_summaries: Sequence[Dict[str, Any]],
     calibration_summaries: Sequence[Dict[str, Any]],
+    raw_normalized_rows: int, duplicate_summary: Dict[str, Any],
 ) -> Dict[str, Any]:
     frames = [row.frame_id for row in rows]
     return {
         "status": "ok" if rows else "missing_or_unparsed_gt",
-        "rows": len(rows), "tracks": len(set((row.scene_id, row.class_id, row.object_id) for row in rows)),
+        "raw_normalized_rows": raw_normalized_rows, "rows": len(rows),
+        "tracks": len(set((row.scene_id, row.class_id, row.object_id) for row in rows)),
+        "duplicate_track1_rows": duplicate_summary,
         "raw_object_fields": dict(sorted(field_counts.items())), "raw_object_example": raw_example,
         "normalized_center_fields": ["3d_location", "3d location"],
         "normalized_dimension_fields": ["3d_bounding_box_scale", "3d bounding box scale"],
@@ -130,6 +140,38 @@ def _frame_indexing(frames: Sequence[int]) -> str:
     if min(frames) == 1:
         return "likely_one_based"
     return "unknown_nonzero_start"
+
+
+def _deduplicate_gt_rows(
+    rows: Sequence[AuditTrack1Row],
+) -> Tuple[List[AuditTrack1Row], Dict[str, Any]]:
+    selected: Dict[Tuple[int, int, int, int], AuditTrack1Row] = {}
+    duplicate_rows = 0
+    geometry_conflicts = 0
+    maximum_multiplicity = 1
+    multiplicity: Dict[Tuple[int, int, int, int], int] = defaultdict(int)
+    for row in rows:
+        key = row.key()
+        multiplicity[key] += 1
+        maximum_multiplicity = max(maximum_multiplicity, multiplicity[key])
+        existing = selected.get(key)
+        if existing is None:
+            selected[key] = row
+            continue
+        duplicate_rows += 1
+        if not np.allclose(
+            [existing.x, existing.y, existing.z, existing.width, existing.length, existing.height, existing.yaw],
+            [row.x, row.y, row.z, row.width, row.length, row.height, row.yaw],
+            rtol=1e-6, atol=1e-6,
+        ):
+            geometry_conflicts += 1
+    return sorted(selected.values(), key=lambda row: row.key()), {
+        "rows_collapsed": duplicate_rows,
+        "unique_track1_keys": len(selected),
+        "keys_with_duplicates": sum(1 for value in multiplicity.values() if value > 1),
+        "maximum_key_multiplicity": maximum_multiplicity,
+        "geometry_conflicts": geometry_conflicts,
+    }
 
 
 def _calibration_summary(path: Path, scene: str) -> Dict[str, Any]:
