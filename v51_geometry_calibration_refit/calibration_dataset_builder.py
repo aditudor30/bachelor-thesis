@@ -182,6 +182,7 @@ def _aggregate_outputs(
     files: List[Tuple[str, str, str, str, Path]],
     generation: Dict[str, Any],
 ) -> Dict[str, Any]:
+    print("V5.1 calibration aggregation: begin sources=%d" % len(source_outputs))
     counts = _aggregate_counts(source_outputs)
     samples_per_class: Dict[str, int] = defaultdict(int)
     samples_per_scene: Dict[str, int] = defaultdict(int)
@@ -263,10 +264,13 @@ def _aggregate_outputs(
                 temporary_paths[key].unlink()
                 _write_csv_atomic(path, [])
 
-    phase_metrics = {
-        phase: _summarize_metric_files(metric_paths[phase], int(counts.get(phase, {}).get("num_matches", 0)))
-        for phase in PHASES
-    }
+    total_matches = sum(int(counts.get(phase, {}).get("num_matches", 0)) for phase in PHASES)
+    print("V5.1 calibration aggregation: CSV complete matches=%d" % total_matches)
+    phase_metrics = {}
+    for phase in PHASES:
+        phase_matches = int(counts.get(phase, {}).get("num_matches", 0))
+        print("V5.1 calibration aggregation: metrics phase=%s matches=%d" % (phase, phase_matches))
+        phase_metrics[phase] = _summarize_metric_files(metric_paths[phase], phase_matches)
     summary = _summary(
         counts, files, generation, phase_metrics,
         samples_per_class, samples_per_scene, samples_per_camera,
@@ -288,6 +292,7 @@ def _aggregate_outputs(
                 path.unlink()
     if metric_root.exists():
         metric_root.rmdir()
+    print("V5.1 calibration aggregation: complete matches=%d" % total_matches)
     return summary
 
 
@@ -378,11 +383,19 @@ def _metric_stats(path: Path, percentiles: Sequence[int]) -> Tuple[Optional[floa
     values = np.memmap(str(path), dtype=np.float64, mode="r+", shape=(size,))
     try:
         mean = float(np.mean(values))
-        computed = np.percentile(values, list(percentiles), overwrite_input=True)
-        result = {
-            int(percentile): float(value)
-            for percentile, value in zip(percentiles, np.asarray(computed).reshape(-1))
-        }
+        # NumPy percentile may copy a memmap. Sorting the temporary metric file
+        # in place keeps peak RAM bounded independently of the match count.
+        values.sort(kind="heapsort")
+        result = {}
+        for percentile in percentiles:
+            rank = (float(percentile) / 100.0) * float(size - 1)
+            lower = int(np.floor(rank))
+            upper = int(np.ceil(rank))
+            fraction = rank - float(lower)
+            lower_value = float(values[lower])
+            upper_value = float(values[upper])
+            result[int(percentile)] = lower_value + (upper_value - lower_value) * fraction
+        values.flush()
         return mean, result
     finally:
         del values

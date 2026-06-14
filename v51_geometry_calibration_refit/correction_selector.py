@@ -1,5 +1,6 @@
 """Fit on Warehouse_000-013 and select corrections on holdout plus official val."""
 
+import csv
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
@@ -8,7 +9,7 @@ from deep_oc_sort_3d.v51_geometry_calibration_refit.center_bias_refit import fit
 from deep_oc_sort_3d.v51_geometry_calibration_refit.depth_scale_refit import fit_depth_scales
 from deep_oc_sort_3d.v51_geometry_calibration_refit.dimension_refit import fit_dimension_scales
 from deep_oc_sort_3d.v51_geometry_calibration_refit.v51_config import VARIANT_NAMES, input_track1_path, output_root, variant_root
-from deep_oc_sort_3d.v51_geometry_calibration_refit.v51_io import read_csv, read_geometry_rows, read_json, write_csv, write_json
+from deep_oc_sort_3d.v51_geometry_calibration_refit.v51_io import read_geometry_rows, read_json, write_csv, write_json
 from deep_oc_sort_3d.v51_geometry_calibration_refit.v51_metrics import before_after_rows, evaluate_corrections, summarize_match_rows, summarize_test_changes
 from deep_oc_sort_3d.v51_geometry_calibration_refit.yaw_bias_refit import fit_yaw_biases
 
@@ -23,8 +24,17 @@ COMPONENT_METRICS = {
 def fit_and_select_corrections(config: Dict[str, Any]) -> Dict[str, Any]:
     """Never fit on holdout: missing fit_train makes V5.1 ineligible."""
     root = output_root(config)
-    rows = _numeric_rows(read_csv(root / "calibration_dataset" / "calibration_matches.csv"))
-    phases = _split_rows(rows)
+    dataset_root = root / "calibration_dataset"
+    phase_files = {
+        "fit_train": dataset_root / "fit_train_matches.csv",
+        "internal_holdout": dataset_root / "internal_holdout_matches.csv",
+        "official_val": dataset_root / "official_val_matches.csv",
+    }
+    phases: Dict[str, List[Dict[str, Any]]] = {}
+    for phase, path in phase_files.items():
+        print("V5.1 correction fitting: loading phase=%s path=%s" % (phase, path))
+        phases[phase] = _read_numeric_rows(path)
+        print("V5.1 correction fitting: loaded phase=%s rows=%d" % (phase, len(phases[phase])))
     fit_rows = phases.get("fit_train", [])
     fit_source = "fit_train" if fit_rows else "missing_fit_train"
     warnings: List[str] = []
@@ -292,7 +302,8 @@ def _evaluation(rows: Sequence[Dict[str, Any]], corrections: Dict[str, Any], met
     return {"samples": len(rows), "metric": metric, "before": before, "after": after, "delta": _delta(after, before)}
 
 
-def _numeric_rows(rows: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _read_numeric_rows(path: Path) -> List[Dict[str, Any]]:
+    """Read one phase incrementally and retain only fields used by fitting."""
     numeric = {
         "official_class_id", "internal_class_id", "frame_id", "pred_x", "pred_y", "pred_z",
         "gt_x", "gt_y", "gt_z", "pred_width", "pred_length", "pred_height",
@@ -300,27 +311,28 @@ def _numeric_rows(rows: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
         "gt_distance", "center_error_before", "dimension_error_before", "yaw_error_before",
         "depth_error_before", "iou3d_proxy_before",
     }
-    output = []
-    for row in rows:
-        item = dict(row)
-        valid = True
-        for key in numeric:
-            if item.get(key) in (None, ""):
-                continue
-            try:
-                item[key] = float(item[key])
-            except (TypeError, ValueError):
-                valid = False
-                break
-        if valid:
-            output.append(item)
-    return output
-
-
-def _split_rows(rows: Sequence[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
-    output: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
-    for row in rows:
-        output[str(row.get("phase", "unknown"))].append(row)
+    retained = numeric | {"scene_name", "coordinate_frame"}
+    output: List[Dict[str, Any]] = []
+    if not path.is_file():
+        return output
+    with path.open("r", newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            item: Dict[str, Any] = {}
+            valid = True
+            for key in retained:
+                value = row.get(key)
+                if key not in numeric:
+                    item[key] = value
+                    continue
+                if value in (None, ""):
+                    continue
+                try:
+                    item[key] = float(value)
+                except (TypeError, ValueError):
+                    valid = False
+                    break
+            if valid:
+                output.append(item)
     return output
 
 
