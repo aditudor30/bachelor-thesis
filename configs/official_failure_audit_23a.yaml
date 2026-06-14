@@ -1,0 +1,93 @@
+official_failure_audit_23a:
+  name: "official_score_failure_audit_23a"
+  output_root: "output/official_failure_audit_23a"
+  progress: true
+  overwrite: false
+
+paths:
+  dataset_root: "/home/cl5-student1/PycharmProjects/PoseTrack1/dataset/MTMC_Tracking_2026"
+  v2_test_track1: "output/frozen_upload_candidates_official_023_027/v2_current_official/track1.txt"
+  v5_test_track1: "output/v5_geometry_calibration_official_023_027/frozen_candidate/v5_geometry_calibrated_official/track1.txt"
+  v2_roots:
+    - "output/final_mvp_exports/baseline_v2_pseudo3d_fullcam"
+    - "output/global_mtmc_transition/baseline_v2_pseudo3d_fullcam"
+    - "output/pipeline_runs/baseline_v2_pseudo3d_fullcam"
+    - "output/pipeline_runs/yolo11m_medium_curriculum_conf001"
+    - "output/pseudo3d/baseline_v2_pseudo3d_fullcam"
+  v5_roots:
+    - "output/v5_geometry_calibration_official_023_027"
+    - "output/v4_geometry_refinement_official_023_027"
+    - "output/v3_coverage_extension_official_023_027"
+
+val_scenes:
+  - "Warehouse_020"
+  - "Warehouse_021"
+  - "Warehouse_022"
+
+official_track1:
+  expected_columns: 11
+  valid_scene_ids: [20, 21, 22]
+  valid_class_ids: [0, 1, 2, 3, 4, 5, 6]
+  round_float_decimals: 2
+
+class_mapping:
+  official:
+    0: "Person"
+    1: "Forklift"
+    2: "NovaCarter"
+    3: "Transporter"
+    4: "FourierGR1T2"
+    5: "AgilityDigit"
+    6: "PalletTruck"
+  internal:
+    0: "Person"
+    1: "Forklift"
+    2: "PalletTruck"
+    3: "Transporter"
+    4: "FourierGR1T2"
+    5: "AgilityDigit"
+    6: "NovaCarter"
+  internal_to_official:
+    0: 0
+    1: 1
+    2: 6
+    3: 3
+    4: 4
+    5: 5
+    6: 2
+
+matching:
+  same_scene: true
+  same_frame: true
+  same_class: true
+  nearest_center: true
+  max_center_distance_m: 10.0
+  distance_thresholds_m: [0.5, 1.0, 2.0, 5.0, 10.0]
+  reject_ambiguous: true
+  ambiguity_distance_margin_m: 0.05
+  max_rows_per_scene_class_frame_for_debug: 5000
+
+hypothesis_sweep:
+  run_axis_hypotheses: true
+  run_center_hypotheses: true
+  run_dimension_order_hypotheses: true
+  run_yaw_hypotheses: true
+  run_frame_hypotheses: true
+  run_class_hypotheses: true
+  run_combined_top_k: 10
+  max_combined_hypotheses: 50
+
+official_scores:
+  v5:
+    hota_3d_percent: 0.63
+    deta_percent: 0.45
+    assa_percent: 0.97
+    loca_percent: 18.21
+  v2:
+    hota_3d_percent: 0.32
+    deta_percent: 0.21
+    assa_percent: 0.52
+    loca_percent: 8.31
+
+figures:
+  enabled: true
